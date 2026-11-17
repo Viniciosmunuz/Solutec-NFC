@@ -73,85 +73,93 @@ em `components/public/PublicPage.tsx`.
 
 ## Colocar no ar
 
-A aplicação precisa de **um servidor Node rodando continuamente**, um
-**PostgreSQL** e um **disco persistente** para as imagens. Qualquer uma das
-opções abaixo atende.
+A aplicação precisa de **PostgreSQL** e de um **lugar persistente para as
+imagens** — a pasta do build é descartável em qualquer plataforma.
 
-### Antes de qualquer deploy
+### Opção A — Vercel + Neon (em uso)
+
+Gratuito e sem servidor para administrar. O Postgres fica no Neon e as imagens
+no Vercel Blob.
+
+**1. Banco no Neon**
+
+Em <https://console.neon.tech>, crie um projeto (ex.: `solutec`) e copie a
+connection string no formato Prisma. Use um banco **só deste sistema**: apontar
+para um banco compartilhado faria o `prisma db push` mexer nas tabelas do outro
+projeto.
+
+**2. Criar as tabelas e o administrador**
+
+Da sua máquina, com a `DATABASE_URL` do Neon no `.env`:
 
 ```bash
-npm run db:use-postgres   # troca o provider do Prisma para PostgreSQL
+npm run db:use-postgres   # se ainda estiver em SQLite
+npx prisma generate
+npx prisma db push
+npm run db:seed
 ```
 
-E defina estas variáveis no painel do provedor:
+**3. Deploy**
+
+Suba o projeto para o GitHub e importe em <https://vercel.com/new>.
+
+Em **Storage → Create → Blob**, crie um Blob store e conecte ao projeto. Isso
+preenche `BLOB_READ_WRITE_TOKEN` sozinho — e é essa variável que faz o sistema
+usar o Blob em vez do disco.
+
+Em **Settings → Environment Variables**:
 
 | Variável | Valor |
 |---|---|
-| `DATABASE_URL` | string de conexão do PostgreSQL |
+| `DATABASE_URL` | a mesma connection string do Neon |
 | `AUTH_SECRET` | `node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"` |
-| `NEXT_PUBLIC_APP_URL` | o domínio final, ex.: `https://solutec.com.br` |
-| `UPLOAD_DIR` | `/data/uploads` (caminho do disco persistente) |
-| `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD` | primeiro administrador |
+| `NEXT_PUBLIC_APP_URL` | a URL final, ex.: `https://solutec.vercel.app` |
 
-> **Defina `NEXT_PUBLIC_APP_URL` com o domínio definitivo antes de gravar a
-> primeira placa.** Ele é a base das URLs dos chips, e chip gravado não volta
-> atrás.
+Faça o redeploy depois de preencher. `NEXT_PUBLIC_APP_URL` é embutida no build,
+então só vale a partir do deploy seguinte.
 
-### Opção A — Railway (recomendada)
+> **Atenção ao domínio.** A URL das placas é gravada no chip e não pode mudar.
+> Enquanto for `*.vercel.app`, use o sistema para testes e demonstrações. Antes
+> de gravar a primeira placa de cliente, aponte o domínio definitivo e atualize
+> `NEXT_PUBLIC_APP_URL`.
 
-Mais simples: Postgres e disco persistente em poucos cliques, sem servidor
-para administrar.
+> **Licença.** O plano Hobby da Vercel é para uso não-comercial pelos termos
+> deles. Operação comercial pede o plano Pro.
 
-1. Suba o projeto para um repositório no GitHub.
-2. Em <https://railway.app>: **New Project → Deploy from GitHub repo**.
-3. **New → Database → PostgreSQL**. Copie a `DATABASE_URL` gerada.
-4. No serviço da aplicação, aba **Variables**, preencha a tabela acima.
-5. Aba **Settings → Volumes**: crie um volume montado em `/data`.
-6. Em **Settings → Deploy**, defina o *pre-deploy command*:
-   `npm run db:deploy`
-7. Aba **Networking**: gere o domínio ou aponte o seu.
+### Opção B — VPS própria com Docker
 
-Custo: a partir de ~US$ 5/mês.
-
-### Opção B — Render
-
-Fluxo parecido. Use **Web Service** (Node), **PostgreSQL** gerenciado e um
-**Disk** montado em `/data`. No campo *Pre-Deploy Command*: `npm run db:deploy`.
-
-> Evite o plano gratuito: ele hiberna por inatividade, e uma placa NFC que
-> demora 30 segundos para abrir passa a impressão de produto quebrado.
-
-### Opção C — VPS própria com Docker (Hostinger, Contabo, DigitalOcean…)
-
-Mais barato no longo prazo e sem travas de plataforma. O projeto já traz
-`Dockerfile` e `docker-compose.yml` com a aplicação e o Postgres:
+Mais barato no longo prazo e sem cláusula de uso comercial. Já vêm prontos o
+`Dockerfile` e o `docker-compose.yml` com aplicação e Postgres:
 
 ```bash
 git clone <seu-repo> && cd solutec
 cp .env.example .env            # defina POSTGRES_PASSWORD, AUTH_SECRET, etc.
-npm run db:use-postgres
 docker compose build
 docker compose run --rm migrate # cria as tabelas e o administrador
 docker compose up -d
 ```
 
-Depois coloque um Nginx ou Caddy na frente para o HTTPS. Se preferir painel,
-o **Coolify** instalado na VPS lê esse mesmo `docker-compose.yml`.
+As imagens ficam no volume montado em `/data/uploads` (sem Blob, sem token).
+Coloque um Nginx ou Caddy na frente para o HTTPS — ou use o **Coolify**, que lê
+esse mesmo `docker-compose.yml`.
 
-### Opção D — Fly.io
+### Opção C — Railway / Render
 
-`fly launch` reconhece o `Dockerfile`. Crie um volume (`fly volumes create data`)
-montado em `/data` e um Postgres com `fly postgres create`.
+Mesmo princípio: Postgres gerenciado, disco montado em `/data` e
+`UPLOAD_DIR=/data/uploads`. No comando de pré-deploy use `npm run db:deploy`.
+Evite o plano gratuito do Render: ele hiberna, e uma placa NFC que demora 30
+segundos para abrir passa a impressão de produto quebrado.
 
-### Por que não a Vercel
+### Voltando para SQLite
 
-A Vercel roda funções sem disco: o SQLite não persiste e as imagens enviadas
-somem a cada deploy. Daria para usar lá com **Postgres gerenciado + storage de
-objetos (S3/R2/Blob)** — nesse caso basta reescrever `saveImage` e `readImage`
-em `lib/storage.ts`. Enquanto o storage for em disco, as opções acima são as
-indicadas.
+Para trabalhar offline, sem Postgres:
 
----
+```bash
+npm run db:use-sqlite
+# DATABASE_URL="file:./dev.db" no .env
+npm run setup
+```
+
 
 ## Scripts
 
