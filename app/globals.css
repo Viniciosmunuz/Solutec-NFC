@@ -1,26 +1,165 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* ==========================================================================
+   SOLUTEC — Design tokens
+   Azul institucional + branco. Tudo que for cor, raio ou sombra sai daqui.
+   ========================================================================== */
+
+@theme {
+  /* Marca */
+  --color-brand-50: #eef4fd;
+  --color-brand-100: #d9e6fa;
+  --color-brand-200: #bbd2f6;
+  --color-brand-300: #8eb6ef;
+  --color-brand-400: #5b92e5;
+  --color-brand-500: #3570d6;
+  --color-brand-600: #1b54b0;
+  --color-brand-700: #17478f;
+  --color-brand-800: #163c75;
+  --color-brand-900: #152f5a;
+  --color-brand-950: #0d1f3d;
+
+  /* Superfícies do painel */
+  --color-surface: #ffffff;
+  --color-canvas: #f6f8fc;
+  --color-line: #e6eaf2;
+
+  /* Sidebar (azul-marinho profundo) */
+  --color-nav: #0e2143;
+  --color-nav-soft: #16305c;
+
+  /* Semânticas */
+  --color-success: #0f9d58;
+  --color-success-soft: #e6f6ee;
+  --color-warning: #d98300;
+  --color-warning-soft: #fdf2e0;
+  --color-danger: #d93b3b;
+  --color-danger-soft: #fdeaea;
+
+  /* Raios */
+  --radius-xl: 0.875rem;
+  --radius-2xl: 1.125rem;
+  --radius-3xl: 1.5rem;
+
+  /* Sombras suaves */
+  --shadow-card: 0 1px 2px rgb(13 31 61 / 0.04), 0 4px 16px rgb(13 31 61 / 0.06);
+  --shadow-pop: 0 8px 30px rgb(13 31 61 / 0.12);
+  --shadow-float: 0 20px 50px rgb(13 31 61 / 0.18);
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+/* Reset de base */
+@layer base {
+  * {
+    border-color: var(--color-line);
+  }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--color-canvas);
+    color: #10233f;
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection {
+    background-color: var(--color-brand-600);
+    color: #fff;
+  }
+
+  /* Scrollbar discreta */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #c7d2e4 transparent;
+  }
+  *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  *::-webkit-scrollbar-thumb {
+    background-color: #c7d2e4;
+    border: 3px solid transparent;
+    border-radius: 9999px;
+    background-clip: content-box;
+  }
+  *::-webkit-scrollbar-track {
+    background: transparent;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer utilities {
+  .shadow-card {
+    box-shadow: var(--shadow-card);
+  }
+  .shadow-pop {
+    box-shadow: var(--shadow-pop);
+  }
+  .shadow-float {
+    box-shadow: var(--shadow-float);
+  }
+
+  /* Esconde a barra de rolagem mantendo o scroll (preview do celular) */
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .animate-in-up {
+    animation: inUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .animate-fade {
+    animation: fadeIn 0.3s ease both;
+  }
+}
+
+@keyframes inUp {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background-color: #e9eef7;
+}
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background-image: linear-gradient(
+    90deg,
+    transparent,
+    rgb(255 255 255 / 0.65),
+    transparent
+  );
+  animation: shimmer 1.6s infinite;
 }

@@ -1,0 +1,61 @@
+# Solutec — stack completa (app + Postgres) para VPS ou máquina local.
+#
+#   cp .env.example .env     e ajuste as variáveis
+#   docker compose build
+#   docker compose run --rm migrate    # cria as tabelas e o admin
+#   docker compose up -d
+
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: solutec
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?defina POSTGRES_PASSWORD no .env}
+      POSTGRES_DB: solutec
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U solutec"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build:
+      context: .
+      target: runner
+      args:
+        NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL}
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://solutec:${POSTGRES_PASSWORD}@db:5432/solutec
+      AUTH_SECRET: ${AUTH_SECRET:?defina AUTH_SECRET no .env}
+      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL}
+      UPLOAD_DIR: /data/uploads
+    volumes:
+      - uploads:/data/uploads
+    ports:
+      - "3000:3000"
+
+  # Execução pontual: cria as tabelas e o primeiro administrador.
+  migrate:
+    build:
+      context: .
+      target: migrator
+    profiles: ["tools"]
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://solutec:${POSTGRES_PASSWORD}@db:5432/solutec
+      SEED_ADMIN_EMAIL: ${SEED_ADMIN_EMAIL}
+      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD}
+      SEED_ADMIN_NAME: ${SEED_ADMIN_NAME}
+
+volumes:
+  db-data:
+  uploads:

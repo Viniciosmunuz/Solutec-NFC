@@ -1,0 +1,215 @@
+// SOLUTEC — Sistema de placas NFC
+// Dev: SQLite. Para produção basta trocar provider para "postgresql"
+// e apontar DATABASE_URL — nenhum campo abaixo depende de SQLite.
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+/// Usuários do painel administrativo (equipe Solutec)
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      String   @default("admin") // admin | operador
+  avatarUrl String?
+  active    Boolean  @default(true)
+  lastLogin DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  activities Activity[]
+  boards     Board[]
+}
+
+/// Cliente que comprou a(s) placa(s)
+model Client {
+  id        String   @id @default(cuid())
+  name      String
+  company   String?
+  email     String?
+  phone     String?
+  document  String? // CPF ou CNPJ
+  zip       String?
+  address   String?
+  number    String?
+  district  String?
+  city      String?
+  state     String?
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  boards Board[]
+
+  @@index([name])
+}
+
+/// Modelo visual aplicável às páginas públicas
+model Template {
+  id          String   @id @default(cuid())
+  key         String   @unique // identificador do componente no registry
+  name        String
+  description String
+  category    String // empresas | restaurantes | profissionais | ...
+  thumbnail   String? // imagem de demonstração
+  accent      String   @default("#1B54B0")
+  background  String   @default("#F6F8FC")
+  featured    Boolean  @default(false)
+  active      Boolean  @default(true)
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  boards Board[]
+
+  @@index([category])
+}
+
+/// A placa NFC física + sua página
+model Board {
+  id         String  @id @default(cuid())
+  /// Código curto impresso/gravado na placa (ex.: SLT-7F3K2A)
+  code       String  @unique
+  /// Slug da URL pública — IMUTÁVEL após a criação
+  slug       String  @unique
+  name       String
+  status     String  @default("producao") // ativa | inativa | producao
+  notes      String?
+
+  clientId   String
+  client     Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  templateId String
+  template   Template @relation(fields: [templateId], references: [id])
+
+  createdById String?
+  createdBy   User?   @relation(fields: [createdById], references: [id], onDelete: SetNull)
+
+  customization Customization?
+  links         Link[]
+  visits        Visit[]
+  clicks        Click[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([clientId])
+  @@index([status])
+}
+
+/// Personalização visual e textual da página pública
+model Customization {
+  id      String @id @default(cuid())
+  boardId String @unique
+  board   Board  @relation(fields: [boardId], references: [id], onDelete: Cascade)
+
+  displayName String
+  headline    String? // cargo / slogan curto
+  bio         String?
+  avatarUrl   String?
+  logoUrl     String?
+  coverUrl    String?
+
+  accent        String  @default("#1B54B0")
+  background    String  @default("#0E2143")
+  textColor     String  @default("#0E2143")
+  buttonStyle   String  @default("solid") // solid | outline | soft | glass
+  buttonRadius  String  @default("rounded") // rounded | pill | square
+  fontFamily    String  @default("inter") // inter | poppins | playfair | mono
+  backgroundMode String @default("gradient") // solid | gradient | image
+
+  showAvatar  Boolean @default(true)
+  showLogo    Boolean @default(true)
+  showBio     Boolean @default(true)
+  showSocial  Boolean @default(true)
+  showShare   Boolean @default(true)
+  showContactCard Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+/// Botões/links exibidos na página pública
+model Link {
+  id      String @id @default(cuid())
+  boardId String
+  board   Board  @relation(fields: [boardId], references: [id], onDelete: Cascade)
+
+  type     String // whatsapp | instagram | facebook | tiktok | site | phone | email | maps | linkedin | youtube | custom
+  label    String
+  value    String // telefone, @usuario ou URL bruta digitada pelo operador
+  url      String // URL final já normalizada
+  icon     String? // sobrescreve o ícone padrão do tipo
+  position Int     @default(0)
+  active   Boolean @default(true)
+  /// true = ícone redondo na linha de sociais; false = botão de largura total
+  asSocial Boolean @default(false)
+
+  clicks Click[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([boardId, position])
+}
+
+/// Cada acesso à página pública
+model Visit {
+  id      String @id @default(cuid())
+  boardId String
+  board   Board  @relation(fields: [boardId], references: [id], onDelete: Cascade)
+
+  source    String  @default("direct") // nfc | qr | direct
+  referer   String?
+  device    String? // mobile | tablet | desktop
+  country   String?
+  createdAt DateTime @default(now())
+
+  @@index([boardId, createdAt])
+}
+
+/// Cada clique em um botão da página pública
+model Click {
+  id      String @id @default(cuid())
+  boardId String
+  board   Board  @relation(fields: [boardId], references: [id], onDelete: Cascade)
+
+  linkId String?
+  link   Link?   @relation(fields: [linkId], references: [id], onDelete: SetNull)
+
+  linkLabel String
+  linkType  String
+  createdAt DateTime @default(now())
+
+  @@index([boardId, createdAt])
+  @@index([linkId])
+}
+
+/// Trilha de atividades exibida no dashboard
+model Activity {
+  id     String  @id @default(cuid())
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  action      String // board.created | board.updated | client.created | ...
+  description String
+  entityType  String?
+  entityId    String?
+  createdAt   DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+/// Configurações gerais do sistema (chave/valor)
+model Setting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}
