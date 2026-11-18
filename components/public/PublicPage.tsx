@@ -483,11 +483,18 @@ function Body({
   buttonLinks,
   socialLinks,
   onDarkSurface,
+  share = true,
 }: {
   ctx: Ctx;
   buttonLinks: PublicLink[];
   socialLinks: PublicLink[];
   onDarkSurface: boolean;
+  /**
+   * false quando o compartilhar foi para o rodapé da tela, em vez de ficar
+   * logo abaixo dos botões. Nos layouts com cartão branco ele continua
+   * dentro do cartão — solto no fim da página pareceria perdido.
+   */
+  share?: boolean;
 }) {
   return (
     <>
@@ -498,8 +505,24 @@ function Body({
         onDarkSurface={onDarkSurface}
       />
       <SocialRow ctx={ctx} links={socialLinks} onDarkSurface={onDarkSurface} />
-      <ShareBar ctx={ctx} />
+      {share ? <ShareBar ctx={ctx} /> : null}
     </>
+  );
+}
+
+/**
+ * Compartilhar e assinatura, encostados no fim da tela.
+ *
+ * `mt-auto` empurra o bloco para baixo quando a página tem pouco conteúdo —
+ * é o que dá o respiro entre os botões e o rodapé. Com a página cheia, ele
+ * simplesmente fica depois do último link, como antes.
+ */
+function Bottom({ ctx, color }: { ctx: Ctx; color: string }) {
+  return (
+    <div className="mt-auto w-full pt-10">
+      <ShareBar ctx={ctx} />
+      <Footer color={color} />
+    </div>
   );
 }
 
@@ -655,7 +678,10 @@ function Shell({
     >
       {cover}
       <Ornament name={ornament} accent={accent} onDark={onDark} />
-      <div className="relative mx-auto w-full max-w-[460px] grow px-5">
+      {/* flex-col aqui é o que deixa o conteúdo esticar: sem isso o `grow`
+          dos layouts não tem contra quem crescer, e o `mt-auto` do rodapé
+          não empurra nada. */}
+      <div className="relative mx-auto flex w-full max-w-[460px] grow flex-col px-5">
         {children}
       </div>
     </div>
@@ -761,6 +787,8 @@ export default function PublicPage({
 
   const shellStyle = { ...backgroundStyle, fontFamily: font };
 
+  // Com cartão branco o compartilhar fica dentro do cartão; sem cartão ele
+  // desce para o rodapé da tela, junto da assinatura.
   const body = (
     <Body
       ctx={ctx}
@@ -770,11 +798,21 @@ export default function PublicPage({
     />
   );
 
+  const bodySemShare = (
+    <Body
+      ctx={ctx}
+      buttonLinks={buttonLinks}
+      socialLinks={socialLinks}
+      onDarkSurface={false}
+      share={false}
+    />
+  );
+
   // ---- spotlight / neon ----
   if (layout === "spotlight" || layout === "neon") {
     return (
       <Shell style={shellStyle} ornament={ornament} accent={custom.accent} onDark={darkLayout} cover={coverLayer}>
-        <div className="relative flex flex-col items-center pt-14">
+        <div className="relative flex grow flex-col items-center pt-14">
           {layout === "neon" ? (
             <div
               className="pointer-events-none absolute -top-10 left-1/2 size-72 -translate-x-1/2 rounded-full blur-3xl"
@@ -792,11 +830,10 @@ export default function PublicPage({
               buttonLinks={buttonLinks}
               socialLinks={socialLinks}
               onDarkSurface
+              share={false}
             />
           </div>
-          <div className="w-full">
-            <Footer color={pageText} />
-          </div>
+          <Bottom ctx={ctx} color={pageText} />
         </div>
       </Shell>
     );
@@ -828,7 +865,7 @@ export default function PublicPage({
   if (layout === "cover") {
     return (
       <Shell style={shellStyle} ornament={ornament} accent={custom.accent} onDark={darkLayout} cover={coverLayer}>
-        <div className="pb-2">
+        <div className="flex grow flex-col pb-2">
           <div className="-mx-5">
             <div
               className="relative h-44 w-full overflow-hidden"
@@ -864,7 +901,9 @@ export default function PublicPage({
             </div>
             <div className="-mt-6">{body}</div>
           </div>
-          <Footer color={pageText} />
+          <div className="mt-auto">
+            <Footer color={pageText} />
+          </div>
         </div>
       </Shell>
     );
@@ -874,7 +913,7 @@ export default function PublicPage({
   if (layout === "editorial") {
     return (
       <Shell style={shellStyle} ornament={ornament} accent={custom.accent} onDark={darkLayout} cover={coverLayer}>
-        <div className="pt-12">
+        <div className="flex grow flex-col pt-12">
           <div className="flex items-end gap-4">
             <Avatar
               ctx={ctx}
@@ -897,8 +936,8 @@ export default function PublicPage({
               nameSize="text-[30px]"
             />
           </div>
-          <div className="mt-7">{body}</div>
-          <Footer color={pageText} />
+          <div className="mt-7">{bodySemShare}</div>
+          <Bottom ctx={ctx} color={pageText} />
         </div>
       </Shell>
     );
@@ -924,9 +963,11 @@ export default function PublicPage({
             <Heading ctx={ctx} color="#ffffff" />
           </div>
         </div>
-        <div className="relative mx-auto -mt-9 w-full max-w-[460px] px-5">
+        <div className="relative mx-auto flex w-full max-w-[460px] grow flex-col px-5" style={{ marginTop: -36 }}>
           <div className="rounded-[22px] bg-white p-5 shadow-float">{body}</div>
-          <Footer color={custom.textColor} />
+          <div className="mt-auto">
+            <Footer color={custom.textColor} />
+          </div>
         </div>
       </div>
     );
@@ -935,7 +976,7 @@ export default function PublicPage({
   // ---- banner (padrão) ----
   return (
     <Shell style={shellStyle} ornament={ornament} accent={custom.accent} onDark={darkLayout} cover={coverLayer}>
-      <div className="pt-14">
+      <div className="flex grow flex-col pt-14">
         <div className="flex flex-col items-center gap-5">
           {custom.showLogo && custom.logoUrl ? (
             <Logo ctx={ctx} height={56} />
@@ -944,8 +985,8 @@ export default function PublicPage({
           )}
           <Heading ctx={ctx} color={custom.textColor} />
         </div>
-        <div className="mt-8">{body}</div>
-        <Footer color={pageText} />
+        <div className="mt-8">{bodySemShare}</div>
+        <Bottom ctx={ctx} color={pageText} />
       </div>
     </Shell>
   );
