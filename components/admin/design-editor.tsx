@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import {
+  BadgeCheck,
   ChevronDown,
   Image as ImageIcon,
   LayoutPanelTop,
@@ -438,6 +439,71 @@ export default function DesignEditor({
               ))}
             </div>
           </Campo>
+        </div>
+      </Secao>
+
+      <Secao
+        icon={BadgeCheck}
+        titulo="Portfólio"
+        resumo="Arroba, rodapé do cartão e chamada final"
+      >
+        <div className="flex flex-col gap-4">
+          <p className="rounded-xl border border-dashed border-[#d2dae8] bg-[#fafbfd] p-3 text-[11.5px] leading-snug text-[#8a97b1]">
+            Estes campos aparecem no template <strong>Portfólio</strong>. Os
+            fatos, projetos e imagens ficam na aba <strong>Blocos</strong>.
+          </p>
+
+          <Input
+            label="Arroba"
+            value={value.handle ?? ""}
+            onChange={(e) => set("handle", e.target.value)}
+            placeholder="@suaempresa"
+            hint="Linha discreta logo abaixo do nome."
+          />
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Input
+              label="Rodapé do cartão, à esquerda"
+              value={value.metaLeft ?? ""}
+              onChange={(e) => set("metaLeft", e.target.value)}
+              placeholder="Manaus, AM"
+            />
+            <Input
+              label="À direita"
+              value={value.metaRight ?? ""}
+              onChange={(e) => set("metaRight", e.target.value)}
+              placeholder="Desde 2023"
+            />
+          </div>
+
+          <Divisor />
+
+          <Input
+            label="Chamada final — título"
+            value={value.ctaTitle ?? ""}
+            onChange={(e) => set("ctaTitle", e.target.value)}
+            placeholder="Seu negócio na internet com mais clientes"
+          />
+          <Input
+            label="Chamada final — texto"
+            value={value.ctaText ?? ""}
+            onChange={(e) => set("ctaText", e.target.value)}
+            placeholder="Sites sob medida para o seu estabelecimento."
+          />
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Input
+              label="Texto do botão"
+              value={value.ctaLabel ?? ""}
+              onChange={(e) => set("ctaLabel", e.target.value)}
+              placeholder="Pedir orçamento"
+            />
+            <Input
+              label="Link do botão"
+              value={value.ctaUrl ?? ""}
+              onChange={(e) => set("ctaUrl", e.target.value)}
+              placeholder="https://wa.me/..."
+            />
+          </div>
         </div>
       </Secao>
 

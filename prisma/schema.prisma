@@ -96,6 +96,9 @@ model Board {
   links         Link[]
   visits        Visit[]
   clicks        Click[]
+  facts         Fact[]
+  projects      Project[]
+  gallery       GalleryItem[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -162,6 +165,18 @@ model Customization {
   /// Multiplicador do tamanho da foto de perfil
   avatarSize      Float  @default(1)
 
+  // --- Página de perfil ------------------------------------------------
+  /// Arroba exibida abaixo do nome (ex.: "@viniciosmuniz_")
+  handle      String?
+  /// Linha discreta no rodapé do cartão: lugar e período
+  metaLeft    String?
+  metaRight   String?
+  /// Chamada final da página
+  ctaTitle    String?
+  ctaText     String?
+  ctaLabel    String?
+  ctaUrl      String?
+
   showAvatar  Boolean @default(true)
   /// Anel colorido em volta da foto de perfil
   avatarRing  Boolean @default(true)
@@ -195,11 +210,57 @@ model Link {
   highlight Boolean @default(false)
   /// Cor própria deste botão; sem ela vale a cor do template
   color     String?
+  /// Número exibido embaixo do ícone na vitrine de sociais (ex.: "1.980")
+  stat      String?
 
   clicks Click[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([boardId, position])
+}
+
+/// Linha de fato no cartão de perfil: um emoji e uma frase curta
+model Fact {
+  id       String @id @default(cuid())
+  boardId  String
+  board    Board  @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  icon     String @default("✨")
+  text     String
+  position Int    @default(0)
+
+  @@index([boardId, position])
+}
+
+/// Cartão de projeto na seção de projetos
+model Project {
+  id       String  @id @default(cuid())
+  boardId  String
+  board    Board   @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  title    String
+  subtitle String?
+  url      String?
+  /// Cor de fundo do cartão
+  color    String  @default("#1B54B0")
+  /// Emoji ou URL de imagem usada como marca do cartão
+  icon     String?
+  /// true = ocupa a largura inteira, no topo da seção
+  featured Boolean @default(false)
+  position Int     @default(0)
+
+  @@index([boardId, position])
+}
+
+/// Imagem da galeria
+model GalleryItem {
+  id       String  @id @default(cuid())
+  boardId  String
+  board    Board   @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  imageUrl String
+  caption  String?
+  url      String?
+  position Int     @default(0)
 
   @@index([boardId, position])
 }

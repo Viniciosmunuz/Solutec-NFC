@@ -40,6 +40,13 @@ type CustomizationRow = {
   contentPosition: string;
   cardStyle: string;
   avatarSize: number;
+  handle: string | null;
+  metaLeft: string | null;
+  metaRight: string | null;
+  ctaTitle: string | null;
+  ctaText: string | null;
+  ctaLabel: string | null;
+  ctaUrl: string | null;
   showLogo: boolean;
   showBio: boolean;
   showSocial: boolean;
@@ -126,6 +133,13 @@ export function toCustomization(row: CustomizationRow): PublicCustomization {
     ),
     cardStyle: pick(row.cardStyle, ["nenhum", "vidro", "solido"] as const, "nenhum"),
     avatarSize: row.avatarSize,
+    handle: row.handle,
+    metaLeft: row.metaLeft,
+    metaRight: row.metaRight,
+    ctaTitle: row.ctaTitle,
+    ctaText: row.ctaText,
+    ctaLabel: row.ctaLabel,
+    ctaUrl: row.ctaUrl,
     showLogo: row.showLogo,
     showBio: row.showBio,
     showSocial: row.showSocial,

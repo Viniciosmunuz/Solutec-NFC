@@ -1,7 +1,13 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
-import { Check, ChevronRight, Download, Share2 } from "lucide-react";
+import {
+  ArrowUpRight,
+  Check,
+  ChevronRight,
+  Download,
+  Share2,
+} from "lucide-react";
 import { getLinkType } from "@/lib/links";
 import { fontStack, getTemplate, type OrnamentKey } from "@/lib/templates";
 import { hexToRgba, initials, readableText, shadeColor } from "@/lib/utils";
@@ -16,6 +22,31 @@ export type PublicLink = {
   highlight?: boolean;
   /** cor própria deste botão */
   color?: string | null;
+  /** número exibido embaixo do ícone na vitrine de sociais */
+  stat?: string | null;
+};
+
+export type PublicFact = {
+  id: string;
+  icon: string;
+  text: string;
+};
+
+export type PublicProject = {
+  id: string;
+  title: string;
+  subtitle: string | null;
+  url: string | null;
+  color: string;
+  icon: string | null;
+  featured: boolean;
+};
+
+export type PublicGalleryItem = {
+  id: string;
+  imageUrl: string;
+  caption: string | null;
+  url: string | null;
 };
 
 export type PublicCustomization = {
@@ -77,6 +108,16 @@ export type PublicCustomization = {
   cardStyle: "nenhum" | "vidro" | "solido";
   /** multiplicador do tamanho da foto */
   avatarSize: number;
+  /** arroba exibida abaixo do nome */
+  handle: string | null;
+  /** linha discreta no rodapé do cartão de perfil */
+  metaLeft: string | null;
+  metaRight: string | null;
+  /** chamada final da página */
+  ctaTitle: string | null;
+  ctaText: string | null;
+  ctaLabel: string | null;
+  ctaUrl: string | null;
   showLogo: boolean;
   showBio: boolean;
   showSocial: boolean;
@@ -88,6 +129,10 @@ type Props = {
   templateKey: string;
   custom: PublicCustomization;
   links: PublicLink[];
+  /** blocos extras do layout de perfil; vazios nos demais templates */
+  facts?: PublicFact[];
+  projects?: PublicProject[];
+  gallery?: PublicGalleryItem[];
   /** slug da placa — usado para registrar cliques. Ausente no preview. */
   slug?: string;
   /** true quando renderizado dentro do editor (sem tracking) */
@@ -567,6 +612,227 @@ function ShowcaseCard({
   );
 }
 
+/**
+ * Azulejo de rede social com o número embaixo.
+ *
+ * O número é texto livre de propósito: ninguém vai integrar API do Instagram
+ * para manter seguidor atualizado numa placa. Quem edita escreve "1.980" ou
+ * "13 repos" e pronto.
+ */
+function SocialTile({ ctx, link }: { ctx: Ctx; link: PublicLink }) {
+  const def = getLinkType(link.type);
+  const Icon = def.icon;
+  const cor =
+    link.color && /^#[0-9a-fA-F]{6}$/.test(link.color)
+      ? link.color
+      : (def.color ?? ctx.custom.accent);
+
+  return (
+    <a
+      href={link.url}
+      target={link.url.startsWith("http") ? "_blank" : undefined}
+      rel="noopener noreferrer"
+      onClick={() => ctx.onLinkClick(link)}
+      aria-label={link.label}
+      className="flex flex-col items-center gap-1.5 transition-transform hover:-translate-y-0.5"
+    >
+      <span
+        className="grid aspect-square w-full max-w-[64px] place-items-center rounded-[22%]"
+        style={{
+          backgroundColor: cor,
+          color: readableText(cor),
+          boxShadow: `0 10px 24px -10px ${hexToRgba(cor, 0.9)}`,
+        }}
+      >
+        <Icon className="size-7" strokeWidth={2.2} />
+      </span>
+      {link.stat ? (
+        <span
+          className="font-semibold"
+          style={{
+            color: hexToRgba(ctx.pageText, 0.6),
+            fontSize: Math.round(11.5 * ctx.scale),
+          }}
+        >
+          {link.stat}
+        </span>
+      ) : null}
+    </a>
+  );
+}
+
+/** Rótulo discreto com um fio de cada lado, separando as seções. */
+function TituloSecao({
+  texto,
+  cor,
+  escala,
+}: {
+  texto: string;
+  cor: string;
+  escala: number;
+}) {
+  return (
+    <div className="mt-8 mb-3 flex items-center gap-3">
+      <span
+        className="h-px flex-1"
+        style={{ backgroundColor: hexToRgba(cor, 0.12) }}
+      />
+      <span
+        className="font-bold uppercase tracking-[0.18em]"
+        style={{ color: hexToRgba(cor, 0.45), fontSize: Math.round(11 * escala) }}
+      >
+        {texto}
+      </span>
+      <span
+        className="h-px flex-1"
+        style={{ backgroundColor: hexToRgba(cor, 0.12) }}
+      />
+    </div>
+  );
+}
+
+/** Cartão de projeto. Em destaque ocupa a largura toda. */
+function ProjectCard({
+  ctx,
+  projeto,
+  grande = false,
+}: {
+  ctx: Ctx;
+  projeto: PublicProject;
+  grande?: boolean;
+}) {
+  const cor = /^#[0-9a-fA-F]{6}$/.test(projeto.color)
+    ? projeto.color
+    : ctx.custom.accent;
+  const tinta = readableText(cor);
+  // Ícone aceita emoji ou imagem: o operador cola o que tiver na mão.
+  const ehImagem = Boolean(projeto.icon && /^(https?:|\/)/.test(projeto.icon));
+
+  const conteudo = (
+    <>
+      <div className="flex items-start justify-between gap-2">
+        <span
+          className="grid size-10 place-items-center rounded-xl text-[20px] leading-none"
+          style={{ backgroundColor: hexToRgba(tinta, 0.16) }}
+        >
+          {ehImagem ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={projeto.icon!}
+              alt=""
+              className="size-7 object-contain"
+            />
+          ) : (
+            (projeto.icon ?? "📦")
+          )}
+        </span>
+        {projeto.url ? (
+          <ArrowUpRight
+            className="size-4 shrink-0"
+            style={{ color: hexToRgba(tinta, 0.75) }}
+            strokeWidth={2.5}
+          />
+        ) : null}
+      </div>
+      <div className={grande ? "mt-6" : "mt-5"}>
+        <p
+          className="font-bold leading-tight"
+          style={{ color: tinta, fontSize: Math.round((grande ? 18 : 15) * ctx.scale) }}
+        >
+          {projeto.title}
+        </p>
+        {projeto.subtitle ? (
+          <p
+            className="mt-1 leading-snug"
+            style={{
+              color: hexToRgba(tinta, 0.75),
+              fontSize: Math.round(12.5 * ctx.scale),
+            }}
+          >
+            {projeto.subtitle}
+          </p>
+        ) : null}
+      </div>
+    </>
+  );
+
+  const estilo: React.CSSProperties = {
+    backgroundColor: cor,
+    borderRadius: 20,
+    boxShadow: `0 18px 36px -22px ${hexToRgba(cor, 0.95)}`,
+  };
+
+  if (!projeto.url) {
+    return (
+      <div className={grande ? "p-5" : "p-4"} style={estilo}>
+        {conteudo}
+      </div>
+    );
+  }
+
+  return (
+    <a
+      href={projeto.url}
+      target={projeto.url.startsWith("http") ? "_blank" : undefined}
+      rel="noopener noreferrer"
+      className={`block transition-transform hover:-translate-y-0.5 ${grande ? "p-5" : "p-4"}`}
+      style={estilo}
+    >
+      {conteudo}
+    </a>
+  );
+}
+
+/**
+ * Galeria em faixa rolável.
+ *
+ * Carrossel com setas exigiria estado e cálculo de posição; aqui a rolagem
+ * horizontal com encaixe faz o mesmo trabalho no celular, que é onde a placa
+ * é lida, e não quebra quando há duas imagens ou dezoito.
+ */
+function Gallery({ itens }: { itens: PublicGalleryItem[] }) {
+  return (
+    <div className="no-scrollbar -mx-5 flex snap-x snap-mandatory gap-3 overflow-x-auto px-5 pb-1">
+      {itens.map((item) => {
+        const miolo = (
+          <>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={item.imageUrl}
+              alt={item.caption ?? ""}
+              className="h-full w-full object-cover"
+            />
+            {item.caption ? (
+              <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 to-transparent px-3 pb-2.5 pt-8 text-left text-[12px] font-semibold text-white">
+                {item.caption}
+              </span>
+            ) : null}
+          </>
+        );
+
+        const classe =
+          "relative block h-[230px] w-[66%] shrink-0 snap-start overflow-hidden rounded-[18px] bg-black/20 ring-1 ring-white/10";
+
+        return item.url ? (
+          <a
+            key={item.id}
+            href={item.url}
+            target={item.url.startsWith("http") ? "_blank" : undefined}
+            rel="noopener noreferrer"
+            className={classe}
+          >
+            {miolo}
+          </a>
+        ) : (
+          <div key={item.id} className={classe}>
+            {miolo}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 function Buttons({
   ctx,
   links,
@@ -950,6 +1216,9 @@ export default function PublicPage({
   templateKey,
   custom,
   links,
+  facts = [],
+  projects = [],
+  gallery = [],
   slug,
   preview = false,
 }: Props) {
@@ -1443,6 +1712,238 @@ export default function PublicPage({
           <Bottom ctx={ctx} color={pageText} />
         </div>
       </Shell>
+    );
+  }
+
+  // ---- perfil: portfólio completo ----
+  if (layout === "perfil") {
+    const sociais = custom.showSocial
+      ? activeLinks.filter((l) => l.asSocial)
+      : [];
+    const contatos = activeLinks.filter(
+      (l) => !l.asSocial || !custom.showSocial,
+    );
+    const destaque = projects.find((p) => p.featured);
+    const demais = projects.filter((p) => !p.featured);
+
+    return (
+      <div
+        className="relative flex min-h-full w-full grow flex-col overflow-hidden"
+        style={shellStyle}
+      >
+        {coverLayer}
+        {/* Os dois brilhos são a assinatura desta página: um quente no topo,
+            um roxo embaixo. Sem eles o fundo vira um azul chapado. */}
+        <div
+          className="pointer-events-none absolute inset-x-0 top-0 h-[55vh]"
+          style={{
+            background: `radial-gradient(90% 60% at 50% 0%, ${hexToRgba(custom.accent, 0.4)} 0%, transparent 70%)`,
+          }}
+        />
+        <div
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-[45vh]"
+          style={{
+            background: `radial-gradient(90% 60% at 50% 100%, ${hexToRgba(shadeColor(custom.accent, -0.1), 0.32)} 0%, transparent 70%)`,
+          }}
+        />
+        <Ornament
+          name={ornament}
+          accent={ornamentAccent}
+          onDark={darkLayout}
+          opacity={ornamentOpacity}
+        />
+
+        <div className="relative mx-auto w-full max-w-[460px] grow px-5 pb-10 pt-10">
+          {/* Cartão de perfil, com a foto saindo por cima dele */}
+          <div className="relative">
+            {custom.showAvatar ? (
+              <div className="relative z-10 flex justify-center">
+                <Avatar
+                  ctx={ctx}
+                  size={Math.round(
+                    132 * Math.min(1.6, Math.max(0.6, custom.avatarSize || 1)),
+                  )}
+                />
+              </div>
+            ) : null}
+
+            <div
+              className={`rounded-[26px] px-5 pb-5 ${custom.showAvatar ? "-mt-16 pt-20" : "pt-6"}`}
+              style={{
+                backgroundImage: `linear-gradient(180deg, ${hexToRgba(shadeColor(custom.background, 0.35), 0.92)} 0%, ${hexToRgba(shadeColor(custom.background, 0.12), 0.92)} 100%)`,
+                border: `1px solid rgba(255,255,255,0.08)`,
+                boxShadow: "0 24px 60px -30px rgba(0,0,0,0.9)",
+              }}
+            >
+              <h1
+                className="text-center font-extrabold leading-tight tracking-tight"
+                style={{
+                  color: pageText,
+                  fontSize: Math.round(30 * ctx.scale),
+                }}
+              >
+                {custom.displayName || "Seu nome"}
+              </h1>
+              {custom.handle ? (
+                <p
+                  className="mt-1 text-center"
+                  style={{
+                    color: hexToRgba(pageText, 0.55),
+                    fontSize: Math.round(14 * ctx.scale),
+                  }}
+                >
+                  {custom.handle}
+                </p>
+              ) : null}
+
+              {facts.length > 0 ? (
+                <ul className="mt-5 flex flex-col gap-3">
+                  {facts.map((f) => (
+                    <li key={f.id} className="flex items-start gap-3">
+                      <span className="shrink-0 text-[17px] leading-tight">
+                        {f.icon}
+                      </span>
+                      <span
+                        className="font-semibold leading-snug"
+                        style={{
+                          color: pageText,
+                          fontSize: Math.round(14.5 * ctx.scale),
+                        }}
+                      >
+                        {f.text}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+
+              {custom.metaLeft || custom.metaRight ? (
+                <>
+                  <div
+                    className="my-4 h-px"
+                    style={{ backgroundColor: "rgba(255,255,255,0.09)" }}
+                  />
+                  <div
+                    className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-center"
+                    style={{
+                      color: hexToRgba(pageText, 0.5),
+                      fontSize: Math.round(12 * ctx.scale),
+                    }}
+                  >
+                    {custom.metaLeft ? <span>{custom.metaLeft}</span> : null}
+                    {custom.metaLeft && custom.metaRight ? (
+                      <span style={{ opacity: 0.4 }}>|</span>
+                    ) : null}
+                    {custom.metaRight ? <span>{custom.metaRight}</span> : null}
+                  </div>
+                </>
+              ) : null}
+            </div>
+          </div>
+
+          {/* Vitrine de redes: ícone grande com o número embaixo */}
+          {sociais.length > 0 ? (
+            <div
+              className="mt-5 grid gap-3"
+              style={{
+                gridTemplateColumns: `repeat(${Math.min(sociais.length, 4)}, minmax(0, 1fr))`,
+              }}
+            >
+              {sociais.map((link) => (
+                <SocialTile key={link.id} ctx={ctx} link={link} />
+              ))}
+            </div>
+          ) : null}
+
+          {contatos.length > 0 ? (
+            <div className="mt-5">
+              <Buttons
+                ctx={ctx}
+                links={contatos}
+                hasSocial={sociais.length > 0}
+                onDarkSurface={sobreEscuro}
+              />
+            </div>
+          ) : null}
+
+          {projects.length > 0 ? (
+            <>
+              <TituloSecao texto="Projetos" cor={pageText} escala={ctx.scale} />
+              {destaque ? (
+                <ProjectCard ctx={ctx} projeto={destaque} grande />
+              ) : null}
+              {demais.length > 0 ? (
+                <div className="mt-3 grid grid-cols-2 gap-3">
+                  {demais.map((p) => (
+                    <ProjectCard key={p.id} ctx={ctx} projeto={p} />
+                  ))}
+                </div>
+              ) : null}
+            </>
+          ) : null}
+
+          {gallery.length > 0 ? (
+            <>
+              <TituloSecao texto="Galeria" cor={pageText} escala={ctx.scale} />
+              <Gallery itens={gallery} />
+            </>
+          ) : null}
+
+          {custom.ctaTitle || custom.ctaLabel ? (
+            <div
+              className="mt-8 rounded-[24px] p-6 text-center"
+              style={{
+                backgroundImage: `linear-gradient(140deg, ${custom.accent}, ${shadeColor(custom.accent, -0.45)})`,
+                boxShadow: `0 22px 44px -20px ${hexToRgba(custom.accent, 0.6)}`,
+              }}
+            >
+              {custom.ctaTitle ? (
+                <p
+                  className="font-extrabold leading-tight"
+                  style={{
+                    color: readableText(custom.accent),
+                    fontSize: Math.round(20 * ctx.scale),
+                  }}
+                >
+                  {custom.ctaTitle}
+                </p>
+              ) : null}
+              {custom.ctaText ? (
+                <p
+                  className="mx-auto mt-2 max-w-[32ch] leading-snug"
+                  style={{
+                    color: hexToRgba(readableText(custom.accent), 0.85),
+                    fontSize: Math.round(13.5 * ctx.scale),
+                  }}
+                >
+                  {custom.ctaText}
+                </p>
+              ) : null}
+              {custom.ctaLabel ? (
+                <a
+                  href={custom.ctaUrl ?? "#"}
+                  target={
+                    custom.ctaUrl?.startsWith("http") ? "_blank" : undefined
+                  }
+                  rel="noopener noreferrer"
+                  className="mt-4 inline-flex items-center gap-2 rounded-full px-5 py-2.5 font-bold transition-transform hover:-translate-y-0.5"
+                  style={{
+                    backgroundColor: readableText(custom.accent),
+                    color: custom.accent,
+                    fontSize: Math.round(14 * ctx.scale),
+                  }}
+                >
+                  {custom.ctaLabel}
+                  <ChevronRight className="size-4" strokeWidth={2.5} />
+                </a>
+              ) : null}
+            </div>
+          ) : null}
+
+          <ShareBar ctx={ctx} />
+          <Footer color={pageText} />
+        </div>
+      </div>
     );
   }
 

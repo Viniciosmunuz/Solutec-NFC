@@ -10,6 +10,9 @@ import { buildLinkUrl } from "@/lib/links";
 import { getTemplate } from "@/lib/templates";
 import type { ActionResult } from "@/lib/actions/clients";
 
+/** Campo de texto opcional que aceita "", null ou ausente. */
+const optionalText = z.string().trim().optional().nullable();
+
 const linkSchema = z.object({
   id: z.string().optional(),
   type: z.string().min(1),
@@ -23,10 +26,31 @@ const linkSchema = z.object({
     .regex(/^#[0-9a-fA-F]{6}$/)
     .nullable()
     .optional(),
+  stat: optionalText,
 });
 
-/** Campo de texto opcional que aceita "", null ou ausente. */
-const optionalText = z.string().trim().optional().nullable();
+const factSchema = z.object({
+  icon: z.string().trim().max(8).default("✨"),
+  text: z.string().trim().min(1, "Escreva o texto do fato."),
+});
+
+const projectSchema = z.object({
+  title: z.string().trim().min(1, "Todo projeto precisa de um nome."),
+  subtitle: optionalText,
+  url: optionalText,
+  color: z
+    .string()
+    .regex(/^#[0-9a-fA-F]{6}$/)
+    .catch("#1B54B0"),
+  icon: optionalText,
+  featured: z.boolean().default(false),
+});
+
+const gallerySchema = z.object({
+  imageUrl: z.string().trim().min(1),
+  caption: optionalText,
+  url: optionalText,
+});
 
 const customizationSchema = z.object({
   displayName: z.string().trim().min(1, "Informe o nome exibido na página."),
@@ -81,6 +105,13 @@ const customizationSchema = z.object({
   contentPosition: z.enum(["topo", "centro", "rodape"]).catch("topo"),
   cardStyle: z.enum(["nenhum", "vidro", "solido"]).catch("nenhum"),
   avatarSize: z.number().min(0.6).max(1.6).catch(1),
+  handle: optionalText,
+  metaLeft: optionalText,
+  metaRight: optionalText,
+  ctaTitle: optionalText,
+  ctaText: optionalText,
+  ctaLabel: optionalText,
+  ctaUrl: optionalText,
   showLogo: z.boolean(),
   showBio: z.boolean(),
   showSocial: z.boolean(),
@@ -238,6 +269,9 @@ const updateSchema = z.object({
   notes: z.string().trim().optional().or(z.literal("")),
   customization: customizationSchema,
   links: z.array(linkSchema).default([]),
+  facts: z.array(factSchema).default([]),
+  projects: z.array(projectSchema).default([]),
+  gallery: z.array(gallerySchema).default([]),
 });
 
 export type UpdateBoardInput = z.input<typeof updateSchema>;
@@ -320,6 +354,54 @@ export async function updateBoard(
       } else {
         await tx.link.create({ data: { ...payload, boardId: id } });
       }
+    }
+
+    /**
+     * Fatos, projetos e galeria são recriados do zero a cada gravação.
+     *
+     * Diferente dos links, eles não acumulam histórico — ninguém mede clique
+     * em linha de fato. Sem id para preservar, apagar e recriar é mais
+     * simples e não deixa resto para trás quando o operador reordena.
+     */
+    await tx.fact.deleteMany({ where: { boardId: id } });
+    if (data.facts.length > 0) {
+      await tx.fact.createMany({
+        data: data.facts.map((f, i) => ({
+          boardId: id,
+          icon: f.icon || "✨",
+          text: f.text,
+          position: i,
+        })),
+      });
+    }
+
+    await tx.project.deleteMany({ where: { boardId: id } });
+    if (data.projects.length > 0) {
+      await tx.project.createMany({
+        data: data.projects.map((p, i) => ({
+          boardId: id,
+          title: p.title,
+          subtitle: blank(p.subtitle),
+          url: blank(p.url),
+          color: p.color,
+          icon: blank(p.icon),
+          featured: p.featured,
+          position: i,
+        })),
+      });
+    }
+
+    await tx.galleryItem.deleteMany({ where: { boardId: id } });
+    if (data.gallery.length > 0) {
+      await tx.galleryItem.createMany({
+        data: data.gallery.map((g, i) => ({
+          boardId: id,
+          imageUrl: g.imageUrl,
+          caption: blank(g.caption),
+          url: blank(g.url),
+          position: i,
+        })),
+      });
     }
   });
 

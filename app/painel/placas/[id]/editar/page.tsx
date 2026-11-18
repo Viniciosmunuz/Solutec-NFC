@@ -21,6 +21,9 @@ export default async function EditarPlacaPage({
       include: {
         customization: true,
         links: { orderBy: { position: "asc" } },
+        facts: { orderBy: { position: "asc" } },
+        projects: { orderBy: { position: "asc" } },
+        gallery: { orderBy: { position: "asc" } },
         template: { select: { key: true } },
       },
     }),
@@ -52,6 +55,9 @@ export default async function EditarPlacaPage({
           templateKey: board.template.key,
           customization: toCustomization(board.customization),
           links: board.links,
+          facts: board.facts,
+          projects: board.projects,
+          gallery: board.gallery,
         }}
         clients={clients}
       />

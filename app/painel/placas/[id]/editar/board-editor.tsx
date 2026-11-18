@@ -14,6 +14,11 @@ import { Card, CardBody } from "@/components/ui/card";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Input, Select, Textarea } from "@/components/ui/field";
 import { Tabs } from "@/components/ui/misc";
+import BlocksEditor, {
+  type EditorFact,
+  type EditorGalleryItem,
+  type EditorProject,
+} from "@/components/admin/blocks-editor";
 import { useToast } from "@/components/ui/toast";
 import { updateBoard } from "@/lib/actions/boards";
 import { buildLinkUrl } from "@/lib/links";
@@ -29,6 +34,24 @@ type LinkRow = {
   active: boolean;
   highlight: boolean;
   color: string | null;
+  stat: string | null;
+};
+
+type FactRow = { id: string; icon: string; text: string };
+type ProjectRow = {
+  id: string;
+  title: string;
+  subtitle: string | null;
+  url: string | null;
+  color: string;
+  icon: string | null;
+  featured: boolean;
+};
+type GalleryRow = {
+  id: string;
+  imageUrl: string;
+  caption: string | null;
+  url: string | null;
 };
 
 export default function BoardEditor({
@@ -46,6 +69,9 @@ export default function BoardEditor({
     templateKey: string;
     customization: PublicCustomization;
     links: LinkRow[];
+    facts: FactRow[];
+    projects: ProjectRow[];
+    gallery: GalleryRow[];
   };
   clients: { id: string; name: string; company: string | null }[];
 }) {
@@ -72,7 +98,68 @@ export default function BoardEditor({
       active: l.active,
       highlight: l.highlight,
       color: l.color,
+      stat: l.stat,
     })),
+  );
+
+  const [facts, setFacts] = useState<EditorFact[]>(() =>
+    board.facts.map((f) => ({ key: f.id, icon: f.icon, text: f.text })),
+  );
+  const [projects, setProjects] = useState<EditorProject[]>(() =>
+    board.projects.map((p) => ({
+      key: p.id,
+      title: p.title,
+      subtitle: p.subtitle ?? "",
+      url: p.url ?? "",
+      color: p.color,
+      icon: p.icon ?? "",
+      featured: p.featured,
+    })),
+  );
+  const [gallery, setGallery] = useState<EditorGalleryItem[]>(() =>
+    board.gallery.map((g) => ({
+      key: g.id,
+      imageUrl: g.imageUrl,
+      caption: g.caption ?? "",
+      url: g.url ?? "",
+    })),
+  );
+
+  // O preview usa as mesmas listas do formulário, com as chaves no lugar do
+  // id: assim o que está na tela é o que vai ser gravado.
+  const previewFacts = useMemo(
+    () =>
+      facts
+        .filter((f) => f.text.trim())
+        .map((f) => ({ id: f.key, icon: f.icon, text: f.text })),
+    [facts],
+  );
+  const previewProjects = useMemo(
+    () =>
+      projects
+        .filter((p) => p.title.trim())
+        .map((p) => ({
+          id: p.key,
+          title: p.title,
+          subtitle: p.subtitle || null,
+          url: p.url || null,
+          color: p.color,
+          icon: p.icon || null,
+          featured: p.featured,
+        })),
+    [projects],
+  );
+  const previewGallery = useMemo(
+    () =>
+      gallery
+        .filter((g) => g.imageUrl)
+        .map((g) => ({
+          id: g.key,
+          imageUrl: g.imageUrl,
+          caption: g.caption || null,
+          url: g.url || null,
+        })),
+    [gallery],
   );
 
   const previewLinks = useMemo(
@@ -87,6 +174,7 @@ export default function BoardEditor({
           asSocial: l.asSocial,
           highlight: l.highlight,
           color: l.color,
+          stat: l.stat,
         })),
     [links],
   );
@@ -135,7 +223,28 @@ export default function BoardEditor({
         active: l.active,
         highlight: l.highlight,
         color: l.color,
+        stat: l.stat,
       })),
+      facts: facts
+        .filter((f) => f.text.trim())
+        .map((f) => ({ icon: f.icon, text: f.text })),
+      projects: projects
+        .filter((p) => p.title.trim())
+        .map((p) => ({
+          title: p.title,
+          subtitle: p.subtitle,
+          url: p.url,
+          color: p.color,
+          icon: p.icon,
+          featured: p.featured,
+        })),
+      gallery: gallery
+        .filter((g) => g.imageUrl)
+        .map((g) => ({
+          imageUrl: g.imageUrl,
+          caption: g.caption,
+          url: g.url,
+        })),
     });
     setSaving(false);
 
@@ -161,6 +270,11 @@ export default function BoardEditor({
               tabs={[
                 { value: "design", label: "Design" },
                 { value: "links", label: "Links", count: links.length },
+                {
+                  value: "blocos",
+                  label: "Blocos",
+                  count: facts.length + projects.length + gallery.length,
+                },
                 { value: "template", label: "Template" },
                 { value: "config", label: "Configurações" },
               ]}
@@ -179,6 +293,19 @@ export default function BoardEditor({
           {tab === "links" ? (
             <CardBody>
               <LinksEditor links={links} onChange={setLinks} />
+            </CardBody>
+          ) : null}
+
+          {tab === "blocos" ? (
+            <CardBody>
+              <BlocksEditor
+                facts={facts}
+                projects={projects}
+                gallery={gallery}
+                onFacts={setFacts}
+                onProjects={setProjects}
+                onGallery={setGallery}
+              />
             </CardBody>
           ) : null}
 
@@ -276,6 +403,9 @@ export default function BoardEditor({
             templateKey={templateKey}
             custom={design}
             links={previewLinks}
+            facts={previewFacts}
+            projects={previewProjects}
+            gallery={previewGallery}
             preview
           />
         </PhonePreview>

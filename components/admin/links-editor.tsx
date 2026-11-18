@@ -39,6 +39,8 @@ export type EditorLink = {
   highlight: boolean;
   /** cor própria deste botão; null usa a do template */
   color: string | null;
+  /** número embaixo do ícone na vitrine de sociais do Portfólio */
+  stat: string | null;
 };
 
 let seq = 0;
@@ -55,6 +57,7 @@ export function makeLink(type: string): EditorLink {
     active: true,
     highlight: false,
     color: null,
+    stat: null,
   };
 }
 
@@ -294,6 +297,13 @@ function SortableRow({
               description="Em vez de um botão largo, aparece como ícone redondo na linha de sociais."
             />
           </div>
+          <Input
+            label="Número"
+            value={link.stat ?? ""}
+            onChange={(e) => onUpdate({ stat: e.target.value || null })}
+            placeholder="1.980"
+            hint="Aparece embaixo do ícone no template Portfólio. Texto livre."
+          />
           <div className="sm:col-span-2">
             <Switch
               checked={link.highlight}

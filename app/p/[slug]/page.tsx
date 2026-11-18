@@ -24,6 +24,9 @@ async function loadBoard(slug: string) {
       status: true,
       customization: true,
       template: { select: { key: true } },
+      facts: { orderBy: { position: "asc" } },
+      projects: { orderBy: { position: "asc" } },
+      gallery: { orderBy: { position: "asc" } },
       links: {
         where: { active: true },
         orderBy: { position: "asc" },
@@ -35,6 +38,7 @@ async function loadBoard(slug: string) {
           asSocial: true,
           highlight: true,
           color: true,
+          stat: true,
         },
       },
     },
@@ -141,6 +145,9 @@ export default async function PublicBoardPage({ params, searchParams }: Params &
           templateKey={board.template.key}
           custom={custom}
           links={board.links}
+          facts={board.facts}
+          projects={board.projects}
+          gallery={board.gallery}
           slug={board.slug}
         />
       </div>
