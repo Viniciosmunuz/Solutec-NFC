@@ -53,7 +53,17 @@ export type TemplateDefaults = {
   textColor: string;
   buttonStyle: "row" | "solid" | "outline" | "soft" | "glass";
   buttonRadius: "rounded" | "pill" | "square";
-  fontFamily: "inter" | "poppins" | "playfair" | "mono";
+  fontFamily:
+    | "inter"
+    | "poppins"
+    | "montserrat"
+    | "nunito"
+    | "oswald"
+    | "bebas"
+    | "playfair"
+    | "lora"
+    | "dancing"
+    | "mono";
   backgroundMode: "solid" | "gradient" | "image";
 };
 
@@ -174,7 +184,7 @@ export const TEMPLATES: TemplateDefinition[] = [
       textColor: "#3A2A1E",
       buttonStyle: "row",
       buttonRadius: "rounded",
-      fontFamily: "playfair",
+      fontFamily: "lora",
       backgroundMode: "solid",
     },
   },
@@ -232,7 +242,7 @@ export const TEMPLATES: TemplateDefinition[] = [
       textColor: "#FFFFFF",
       buttonStyle: "row",
       buttonRadius: "rounded",
-      fontFamily: "poppins",
+      fontFamily: "bebas",
       backgroundMode: "gradient",
     },
   },
@@ -252,7 +262,7 @@ export const TEMPLATES: TemplateDefinition[] = [
       textColor: "#FFFFFF",
       buttonStyle: "row",
       buttonRadius: "rounded",
-      fontFamily: "poppins",
+      fontFamily: "oswald",
       backgroundMode: "gradient",
     },
   },
@@ -448,7 +458,7 @@ export const TEMPLATES: TemplateDefinition[] = [
       textColor: "#10233F",
       buttonStyle: "row",
       buttonRadius: "rounded",
-      fontFamily: "inter",
+      fontFamily: "montserrat",
       backgroundMode: "solid",
     },
   },
@@ -488,7 +498,7 @@ export const TEMPLATES: TemplateDefinition[] = [
       textColor: "#3B2230",
       buttonStyle: "row",
       buttonRadius: "pill",
-      fontFamily: "poppins",
+      fontFamily: "dancing",
       backgroundMode: "solid",
     },
   },
@@ -527,7 +537,7 @@ export const TEMPLATES: TemplateDefinition[] = [
       textColor: "#2A1512",
       buttonStyle: "row",
       buttonRadius: "rounded",
-      fontFamily: "poppins",
+      fontFamily: "nunito",
       backgroundMode: "solid",
     },
   },
@@ -582,7 +592,13 @@ export function getTemplate(key: string): TemplateDefinition {
 export const FONT_OPTIONS = [
   { value: "inter", label: "Inter — moderna", stack: "var(--font-inter), sans-serif" },
   { value: "poppins", label: "Poppins — geométrica", stack: "var(--font-poppins), sans-serif" },
-  { value: "playfair", label: "Playfair — serifada", stack: "var(--font-playfair), serif" },
+  { value: "montserrat", label: "Montserrat — corporativa", stack: "var(--font-montserrat), sans-serif" },
+  { value: "nunito", label: "Nunito — arredondada", stack: "var(--font-nunito), sans-serif" },
+  { value: "oswald", label: "Oswald — condensada", stack: "var(--font-oswald), sans-serif" },
+  { value: "bebas", label: "Bebas — impacto", stack: "var(--font-bebas), sans-serif" },
+  { value: "playfair", label: "Playfair — serifada clássica", stack: "var(--font-playfair), serif" },
+  { value: "lora", label: "Lora — serifada leve", stack: "var(--font-lora), serif" },
+  { value: "dancing", label: "Dancing — manuscrita", stack: "var(--font-dancing), cursive" },
   { value: "mono", label: "Mono — técnica", stack: "var(--font-mono), monospace" },
 ] as const;
 

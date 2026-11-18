@@ -48,7 +48,7 @@ const customizationSchema = z.object({
   textColor: z.string().regex(/^#[0-9a-fA-F]{6}$/, "Cor inválida."),
   buttonStyle: z.enum(["row", "solid", "outline", "soft", "glass"]),
   buttonRadius: z.enum(["rounded", "pill", "square"]),
-  fontFamily: z.enum(["inter", "poppins", "playfair", "mono"]),
+  fontFamily: z.enum(["inter", "poppins", "montserrat", "nunito", "oswald", "bebas", "playfair", "lora", "dancing", "mono"]),
   backgroundMode: z.enum(["solid", "gradient", "image"]),
   showAvatar: z.boolean(),
   avatarRing: z.boolean().catch(true),

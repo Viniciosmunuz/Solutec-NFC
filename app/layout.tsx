@@ -1,5 +1,16 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, JetBrains_Mono, Playfair_Display, Poppins } from "next/font/google";
+import {
+  Bebas_Neue,
+  Dancing_Script,
+  Inter,
+  JetBrains_Mono,
+  Lora,
+  Montserrat,
+  Nunito,
+  Oswald,
+  Playfair_Display,
+  Poppins,
+} from "next/font/google";
 import "./globals.css";
 
 const inter = Inter({
@@ -25,6 +36,57 @@ const mono = JetBrains_Mono({
   variable: "--font-mono",
   subsets: ["latin"],
   display: "swap",
+});
+
+/**
+ * Fontes extras à escolha do operador.
+ *
+ * `preload: false` de propósito: só a fonte que o template usa é baixada, e
+ * apenas quando o texto dela aparece. Pré-carregar dez famílias em toda
+ * página custaria o tempo de abertura da placa — que é exatamente o que o
+ * cliente sente ao encostar o celular.
+ */
+const montserrat = Montserrat({
+  variable: "--font-montserrat",
+  subsets: ["latin"],
+  display: "swap",
+  preload: false,
+});
+
+const oswald = Oswald({
+  variable: "--font-oswald",
+  subsets: ["latin"],
+  display: "swap",
+  preload: false,
+});
+
+const bebas = Bebas_Neue({
+  variable: "--font-bebas",
+  subsets: ["latin"],
+  weight: ["400"],
+  display: "swap",
+  preload: false,
+});
+
+const lora = Lora({
+  variable: "--font-lora",
+  subsets: ["latin"],
+  display: "swap",
+  preload: false,
+});
+
+const dancing = Dancing_Script({
+  variable: "--font-dancing",
+  subsets: ["latin"],
+  display: "swap",
+  preload: false,
+});
+
+const nunito = Nunito({
+  variable: "--font-nunito",
+  subsets: ["latin"],
+  display: "swap",
+  preload: false,
 });
 
 export const metadata: Metadata = {
@@ -60,7 +122,7 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <body
-        className={`${inter.variable} ${poppins.variable} ${playfair.variable} ${mono.variable} antialiased`}
+        className={`${inter.variable} ${poppins.variable} ${playfair.variable} ${mono.variable} ${montserrat.variable} ${oswald.variable} ${bebas.variable} ${lora.variable} ${dancing.variable} ${nunito.variable} antialiased`}
       >
         {children}
       </body>

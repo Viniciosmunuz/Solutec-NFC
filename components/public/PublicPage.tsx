@@ -38,7 +38,17 @@ export type PublicCustomization = {
   textColor: string;
   buttonStyle: "row" | "solid" | "outline" | "soft" | "glass";
   buttonRadius: "rounded" | "pill" | "square";
-  fontFamily: "inter" | "poppins" | "playfair" | "mono";
+  fontFamily:
+    | "inter"
+    | "poppins"
+    | "montserrat"
+    | "nunito"
+    | "oswald"
+    | "bebas"
+    | "playfair"
+    | "lora"
+    | "dancing"
+    | "mono";
   backgroundMode: "solid" | "gradient" | "image";
   showAvatar: boolean;
   /** anel colorido em volta da foto de perfil */

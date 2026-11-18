@@ -75,7 +75,7 @@ export function toCustomization(row: CustomizationRow): PublicCustomization {
     ),
     fontFamily: pick(
       row.fontFamily,
-      ["inter", "poppins", "playfair", "mono"] as const,
+      ["inter", "poppins", "montserrat", "nunito", "oswald", "bebas", "playfair", "lora", "dancing", "mono"] as const,
       "inter",
     ),
     backgroundMode: pick(
