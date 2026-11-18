@@ -76,21 +76,30 @@ em `components/public/PublicPage.tsx`.
 A aplicação precisa de **PostgreSQL** e de um **lugar persistente para as
 imagens** — a pasta do build é descartável em qualquer plataforma.
 
-### Opção A — Vercel + Neon (em uso)
+### Opção A — Vercel + Supabase (em uso)
 
-Gratuito e sem servidor para administrar. O Postgres fica no Neon e as imagens
-no Vercel Blob.
+Gratuito e sem servidor para administrar. O Postgres fica no Supabase (região
+de São Paulo) e as imagens no Vercel Blob.
 
-**1. Banco no Neon**
+**1. Banco no Supabase**
 
-Em <https://console.neon.tech>, crie um projeto (ex.: `solutec`) e copie a
-connection string no formato Prisma. Use um banco **só deste sistema**: apontar
-para um banco compartilhado faria o `prisma db push` mexer nas tabelas do outro
-projeto.
+Em <https://supabase.com/dashboard>, crie um projeto (ex.: `solutec`) na região
+**South America (São Paulo)** e desmarque **Ativar API de Dados** — o sistema
+fala com o banco pelo Prisma, não pelo PostgREST, e deixar a API ligada
+exporia as tabelas publicamente.
+
+Em **Connect** há duas strings que importam:
+
+| Uso | Porta | Quando |
+|---|---|---|
+| Transaction pooler | 6543 | em produção, com `?pgbouncer=true&connection_limit=1` |
+| Session pooler | 5432 | para rodar `prisma db push` e o seed |
+
+O `db push` trava na porta 6543: migração precisa de sessão, não de transação.
 
 **2. Criar as tabelas e o administrador**
 
-Da sua máquina, com a `DATABASE_URL` do Neon no `.env`:
+Da sua máquina, usando a string da **porta 5432**:
 
 ```bash
 npm run db:use-postgres   # se ainda estiver em SQLite
@@ -111,7 +120,7 @@ Em **Settings → Environment Variables**:
 
 | Variável | Valor |
 |---|---|
-| `DATABASE_URL` | a mesma connection string do Neon |
+| `DATABASE_URL` | a string da **porta 6543**, com `?pgbouncer=true&connection_limit=1` |
 | `AUTH_SECRET` | `node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"` |
 | `NEXT_PUBLIC_APP_URL` | a URL final, ex.: `https://solutec.vercel.app` |
 

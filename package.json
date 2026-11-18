@@ -15,7 +15,8 @@
     "postinstall": "prisma generate",
     "db:use-postgres": "node scripts/db-provider.mjs postgresql",
     "db:use-sqlite": "node scripts/db-provider.mjs sqlite",
-    "db:deploy": "prisma db push --skip-generate && tsx prisma/seed.ts"
+    "db:deploy": "prisma db push --skip-generate && tsx prisma/seed.ts",
+    "db:sync-templates": "tsx --env-file=.env prisma/sync-templates.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

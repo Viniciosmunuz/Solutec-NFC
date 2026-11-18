@@ -1,9 +1,9 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
-import { Check, Download, Share2 } from "lucide-react";
+import { Check, ChevronRight, Download, Share2 } from "lucide-react";
 import { getLinkType } from "@/lib/links";
-import { fontStack, getTemplate } from "@/lib/templates";
+import { fontStack, getTemplate, type OrnamentKey } from "@/lib/templates";
 import { hexToRgba, initials, readableText, shadeColor } from "@/lib/utils";
 
 export type PublicLink = {
@@ -24,7 +24,7 @@ export type PublicCustomization = {
   accent: string;
   background: string;
   textColor: string;
-  buttonStyle: "solid" | "outline" | "soft" | "glass";
+  buttonStyle: "row" | "solid" | "outline" | "soft" | "glass";
   buttonRadius: "rounded" | "pill" | "square";
   fontFamily: "inter" | "poppins" | "playfair" | "mono";
   backgroundMode: "solid" | "gradient" | "image";
@@ -176,6 +176,19 @@ function buttonStyles(ctx: Ctx, onDarkSurface: boolean): React.CSSProperties {
   const radius = ctx.radius;
 
   switch (ctx.custom.buttonStyle) {
+    // Linha neutra com a cor da marca concentrada no ícone. É o estilo das
+    // referências: o botão não grita, quem carrega a identidade é o chip.
+    case "row":
+      return {
+        backgroundColor: onDarkSurface
+          ? "rgba(255,255,255,0.055)"
+          : "#ffffff",
+        border: `1px solid ${
+          onDarkSurface ? "rgba(255,255,255,0.10)" : hexToRgba(accent, 0.14)
+        }`,
+        color: onDarkSurface ? "#ffffff" : "#15233c",
+        borderRadius: radius,
+      };
     case "outline":
       return {
         backgroundColor: "transparent",
@@ -222,26 +235,59 @@ function LinkButton({
   onDarkSurface: boolean;
 }) {
   const Icon = getLinkType(link.type).icon;
+  const { accent, buttonStyle } = ctx.custom;
+  const isRow = buttonStyle === "row";
+
+  /**
+   * No estilo "row" o ícone ganha um chip com a cor da marca; nos outros ele
+   * segue a cor do próprio botão, como antes.
+   */
+  const chipStyle: React.CSSProperties = isRow
+    ? {
+        backgroundColor: accent,
+        color: readableText(accent),
+        borderRadius: ctx.custom.buttonRadius === "square" ? 6 : 11,
+      }
+    : {};
+
   return (
     <a
       href={link.url}
       target={link.url.startsWith("http") ? "_blank" : undefined}
       rel="noopener noreferrer"
       onClick={() => ctx.onLinkClick(link)}
-      className="group flex w-full items-center gap-3 px-4 py-3.5 text-[15px] font-semibold transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99]"
+      className={`group flex w-full items-center text-[15px] font-semibold transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99] ${
+        isRow ? "gap-3 py-2 pl-2 pr-3.5" : "gap-3 px-4 py-3.5"
+      }`}
       style={{
         ...buttonStyles(ctx, onDarkSurface),
         boxShadow:
-          ctx.custom.buttonStyle === "solid"
-            ? `0 6px 18px ${hexToRgba(ctx.custom.accent, 0.28)}`
-            : undefined,
+          buttonStyle === "solid"
+            ? `0 6px 18px ${hexToRgba(accent, 0.28)}`
+            : isRow
+              ? onDarkSurface
+                ? "0 2px 10px rgba(0,0,0,0.35)"
+                : "0 4px 14px rgba(16,35,63,0.08)"
+              : undefined,
       }}
     >
-      <span className="grid size-7 shrink-0 place-items-center">
-        <Icon className="size-[19px]" strokeWidth={2.2} />
+      <span
+        className={
+          isRow
+            ? "grid size-10 shrink-0 place-items-center"
+            : "grid size-7 shrink-0 place-items-center"
+        }
+        style={chipStyle}
+      >
+        <Icon className={isRow ? "size-5" : "size-[19px]"} strokeWidth={2.2} />
       </span>
       <span className="flex-1 text-left leading-tight">{link.label}</span>
-      <span className="opacity-0 transition-opacity group-hover:opacity-60">›</span>
+      <ChevronRight
+        className={`size-4 shrink-0 transition-transform group-hover:translate-x-0.5 ${
+          isRow ? "opacity-45" : "opacity-0 group-hover:opacity-60"
+        }`}
+        strokeWidth={2.5}
+      />
     </a>
   );
 }
@@ -418,16 +464,151 @@ function Body({
   );
 }
 
+/**
+ * Camada decorativa do fundo.
+ *
+ * São formas puramente visuais — ondas, faixas, folhas — desenhadas em SVG e
+ * pintadas com a cor de destaque do template. Ficam atrás de tudo e não
+ * recebem clique. O `viewBox` é esticado de propósito (`preserveAspectRatio
+ * none`): a forma acompanha a altura da página em vez de repetir.
+ */
+function Ornament({
+  name,
+  accent,
+  onDark,
+}: {
+  name?: OrnamentKey;
+  accent: string;
+  onDark: boolean;
+}) {
+  if (!name) return null;
+
+  const a = (o: number) => hexToRgba(accent, o);
+  const veil = onDark ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.55)";
+  const cls = "pointer-events-none absolute inset-0 size-full";
+
+  switch (name) {
+    // Ondas suaves no topo e no rodapé.
+    case "waves":
+      return (
+        <svg className={cls} viewBox="0 0 390 780" preserveAspectRatio="none" aria-hidden>
+          <path d="M0 0h390v96c-78 54-152 2-244 42S54 214 0 176Z" fill={a(0.85)} />
+          <path d="M0 0h390v58c-86 46-150 0-238 40S48 160 0 126Z" fill={veil} />
+          <path d="M0 780h390V648c-84-44-166 16-258 42S56 712 0 678Z" fill={a(0.85)} />
+        </svg>
+      );
+
+    // Lascas diagonais no canto superior, para templates de energia.
+    case "shards":
+      return (
+        <svg className={cls} viewBox="0 0 390 780" preserveAspectRatio="none" aria-hidden>
+          <path d="M300 0h34L262 108h-34Z" fill={a(0.45)} />
+          <path d="M348 0h42L316 116h-42Z" fill={a(0.8)} />
+          <path d="M330 34h60v26L330 140Z" fill={a(0.22)} />
+          <path d="M0 780h56l74-98H62Z" fill={a(0.3)} />
+        </svg>
+      );
+
+    // Folhas nos cantos — clínicas, bem-estar, natural.
+    case "leaves":
+      return (
+        <svg className={cls} viewBox="0 0 390 780" preserveAspectRatio="none" aria-hidden>
+          <path
+            d="M390 0c-60 10-108 46-128 96-18 46 2 86 36 96 40 12 82-22 96-74 10-38 6-80-4-118Z"
+            fill={a(0.5)}
+          />
+          <path
+            d="M352 24c-36 36-54 82-48 124 4 28 24 44 44 38 24-6 38-40 36-80-2-30-14-60-32-82Z"
+            fill={a(0.8)}
+          />
+          <path
+            d="M0 780c54-14 96-52 112-100 14-44-6-80-38-88-38-10-76 24-88 74-8 36-4 76 6 114Z"
+            fill={a(0.45)}
+          />
+        </svg>
+      );
+
+    // Manchas difusas, bem suaves.
+    case "blobs":
+      return (
+        <svg className={cls} viewBox="0 0 390 780" preserveAspectRatio="none" aria-hidden>
+          <defs>
+            <radialGradient id="orn-blob-a">
+              <stop offset="0%" stopColor={a(0.55)} />
+              <stop offset="100%" stopColor={a(0)} />
+            </radialGradient>
+          </defs>
+          <ellipse cx="60" cy="70" rx="210" ry="170" fill="url(#orn-blob-a)" />
+          <ellipse cx="350" cy="700" rx="190" ry="160" fill="url(#orn-blob-a)" />
+        </svg>
+      );
+
+    // Riscos finos nos cantos — luxo, barbearia.
+    case "streaks":
+      return (
+        <svg className={cls} viewBox="0 0 390 780" preserveAspectRatio="none" aria-hidden>
+          <path d="M0 0h130L0 150Z" fill={a(0.5)} />
+          <path d="M0 24h74L0 104Z" fill={a(0.9)} />
+          <path d="M390 780H270L390 640Z" fill={a(0.5)} />
+          <path d="M390 756h-66L390 684Z" fill={a(0.9)} />
+        </svg>
+      );
+
+    // Fita diagonal atravessando o topo.
+    case "diagonal":
+      return (
+        <svg className={cls} viewBox="0 0 390 780" preserveAspectRatio="none" aria-hidden>
+          <path d="M0 0h150L0 210Z" fill={a(0.85)} />
+          <path d="M60 0h80L0 128V48Z" fill={veil} />
+          <path d="M390 780h-140L390 560Z" fill={a(0.5)} />
+        </svg>
+      );
+
+    // Onda vertical na lateral direita.
+    case "sidewave":
+      return (
+        <svg className={cls} viewBox="0 0 390 780" preserveAspectRatio="none" aria-hidden>
+          <path d="M390 0v780H250c52-150-40-230-4-380S300 90 286 0Z" fill={a(0.12)} />
+          <path d="M390 0v780h-54c38-150-28-230 2-380s46-310 34-400Z" fill={a(0.28)} />
+          <path d="M390 0v780h-14c12-160-10-240 2-390S378 80 374 0Z" fill={a(0.8)} />
+        </svg>
+      );
+
+    // Barras anguladas — concessionárias, automotivo.
+    case "angles":
+      return (
+        <svg className={cls} viewBox="0 0 390 780" preserveAspectRatio="none" aria-hidden>
+          <path d="M0 0h96L0 128Z" fill={a(0.9)} />
+          <path d="M110 0h52L0 182v-44Z" fill={a(0.45)} />
+          <path d="M390 780h-110L390 640Z" fill={a(0.9)} />
+          <path d="M390 600v34L256 780h-60Z" fill={a(0.4)} />
+        </svg>
+      );
+
+    default:
+      return null;
+  }
+}
+
 function Shell({
   children,
   style,
+  ornament,
+  accent,
+  onDark,
 }: {
   children: React.ReactNode;
   style?: React.CSSProperties;
+  ornament?: OrnamentKey;
+  accent: string;
+  onDark: boolean;
 }) {
   return (
-    <div className="min-h-full w-full" style={style}>
-      <div className="mx-auto w-full max-w-[460px] px-5">{children}</div>
+    <div className="relative min-h-full w-full overflow-hidden" style={style}>
+      <Ornament name={ornament} accent={accent} onDark={onDark} />
+      <div className="relative mx-auto w-full max-w-[460px] px-5">
+        {children}
+      </div>
     </div>
   );
 }
@@ -443,7 +624,9 @@ export default function PublicPage({
   slug,
   preview = false,
 }: Props) {
-  const layout = getTemplate(templateKey).layout;
+  const template = getTemplate(templateKey);
+  const layout = template.layout;
+  const ornament = template.ornament;
   const darkLayout = layout === "spotlight" || layout === "neon";
   const onDark = darkLayout || layout === "card" || layout === "cover";
   const pageText = darkLayout ? "#ffffff" : readableText(custom.background);
@@ -524,7 +707,7 @@ export default function PublicPage({
   // ---- spotlight / neon ----
   if (layout === "spotlight" || layout === "neon") {
     return (
-      <Shell style={shellStyle}>
+      <Shell style={shellStyle} ornament={ornament} accent={custom.accent} onDark={darkLayout}>
         <div className="relative flex flex-col items-center pt-14">
           {layout === "neon" ? (
             <div
@@ -556,7 +739,7 @@ export default function PublicPage({
   // ---- card ----
   if (layout === "card") {
     return (
-      <Shell style={shellStyle}>
+      <Shell style={shellStyle} ornament={ornament} accent={custom.accent} onDark={darkLayout}>
         <div className="flex min-h-screen flex-col justify-center py-10">
           <div
             className="w-full overflow-hidden rounded-[26px] bg-white px-6 pb-7 pt-8 shadow-float"
@@ -578,7 +761,7 @@ export default function PublicPage({
   // ---- cover ----
   if (layout === "cover") {
     return (
-      <Shell style={shellStyle}>
+      <Shell style={shellStyle} ornament={ornament} accent={custom.accent} onDark={darkLayout}>
         <div className="pb-2">
           <div className="-mx-5">
             <div
@@ -613,7 +796,7 @@ export default function PublicPage({
   // ---- editorial ----
   if (layout === "editorial") {
     return (
-      <Shell style={shellStyle}>
+      <Shell style={shellStyle} ornament={ornament} accent={custom.accent} onDark={darkLayout}>
         <div className="pt-12">
           <div className="flex items-end gap-4">
             <Avatar
@@ -647,9 +830,13 @@ export default function PublicPage({
   // ---- split ----
   if (layout === "split") {
     return (
-      <div className="min-h-full w-full bg-[#f6f8fc]" style={{ fontFamily: font }}>
+      <div
+        className="relative min-h-full w-full overflow-hidden bg-[#f6f8fc]"
+        style={{ fontFamily: font }}
+      >
+        <Ornament name={ornament} accent={custom.accent} onDark={false} />
         <div
-          className="w-full pb-16 pt-12"
+          className="relative w-full pb-16 pt-12"
           style={{
             backgroundImage: `linear-gradient(135deg, ${custom.accent}, ${shadeColor(custom.accent, -0.35)})`,
           }}
@@ -660,7 +847,7 @@ export default function PublicPage({
             <Heading ctx={ctx} color="#ffffff" />
           </div>
         </div>
-        <div className="mx-auto -mt-9 w-full max-w-[460px] px-5">
+        <div className="relative mx-auto -mt-9 w-full max-w-[460px] px-5">
           <div className="rounded-[22px] bg-white p-5 shadow-float">{body}</div>
           <Footer color={custom.textColor} />
         </div>
@@ -670,7 +857,7 @@ export default function PublicPage({
 
   // ---- banner (padrão) ----
   return (
-    <Shell style={shellStyle}>
+    <Shell style={shellStyle} ornament={ornament} accent={custom.accent} onDark={darkLayout}>
       <div className="pt-14">
         <div className="flex flex-col items-center gap-5">
           {custom.showLogo && custom.logoUrl ? (

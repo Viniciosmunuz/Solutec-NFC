@@ -15,6 +15,21 @@ export type TemplateLayout =
   | "neon" // fundo escuro com brilho, botões de vidro
   | "split"; // faixa colorida em cima, conteúdo claro embaixo
 
+/**
+ * Formas decorativas do fundo. São desenhadas em SVG no renderizador
+ * (`components/public/PublicPage.tsx`) e pintadas com a cor de destaque do
+ * template, então a mesma forma serve para qualquer paleta.
+ */
+export type OrnamentKey =
+  | "waves" // ondas no topo e no rodapé
+  | "shards" // lascas diagonais, energia
+  | "leaves" // folhas nos cantos, natural
+  | "blobs" // manchas difusas, suave
+  | "streaks" // riscos finos nos cantos, luxo
+  | "diagonal" // fita diagonal atravessando o topo
+  | "sidewave" // onda vertical na lateral
+  | "angles"; // barras anguladas, automotivo
+
 export type TemplateCategory =
   | "empresas"
   | "restaurantes"
@@ -25,13 +40,14 @@ export type TemplateCategory =
   | "imobiliarias"
   | "lojas"
   | "clinicas"
+  | "automotivo"
   | "outros";
 
 export type TemplateDefaults = {
   accent: string;
   background: string;
   textColor: string;
-  buttonStyle: "solid" | "outline" | "soft" | "glass";
+  buttonStyle: "row" | "solid" | "outline" | "soft" | "glass";
   buttonRadius: "rounded" | "pill" | "square";
   fontFamily: "inter" | "poppins" | "playfair" | "mono";
   backgroundMode: "solid" | "gradient" | "image";
@@ -43,9 +59,19 @@ export type TemplateDefinition = {
   description: string;
   category: TemplateCategory;
   layout: TemplateLayout;
+  /** forma decorativa do fundo; sem ela o fundo fica liso */
+  ornament?: OrnamentKey;
   featured: boolean;
   order: number;
   defaults: TemplateDefaults;
+  /**
+   * Existe arte pronta em `public/templates/<key>.png`?
+   *
+   * Com `art: true` a vitrine mostra essa imagem no lugar da miniatura
+   * renderizada ao vivo. Marque só depois de colocar o arquivo na pasta — o
+   * preview em tamanho cheio continua sendo a página de verdade, sempre.
+   */
+  art?: boolean;
 };
 
 export const TEMPLATE_CATEGORIES: {
@@ -61,6 +87,7 @@ export const TEMPLATE_CATEGORIES: {
   { value: "imobiliarias", label: "Imobiliárias" },
   { value: "lojas", label: "Lojas" },
   { value: "clinicas", label: "Clínicas" },
+  { value: "automotivo", label: "Automotivo" },
   { value: "outros", label: "Outros" },
 ];
 
@@ -72,91 +99,96 @@ export const TEMPLATES: TemplateDefinition[] = [
     key: "corporate-blue",
     name: "Corporate Blue",
     description:
-      "Cartão institucional sóbrio, com logotipo em destaque e botões sólidos.",
+      "Claro e institucional, com ondas azuis e linhas de contato bem separadas.",
     category: "empresas",
-    layout: "card",
+    layout: "banner",
+    ornament: "waves",
     featured: true,
     order: 1,
     defaults: {
       accent: "#1B54B0",
-      background: "#0E2143",
+      background: "#EAF1FD",
       textColor: "#10233F",
-      buttonStyle: "solid",
+      buttonStyle: "row",
       buttonRadius: "rounded",
       fontFamily: "inter",
-      backgroundMode: "gradient",
+      backgroundMode: "solid",
     },
   },
   {
     key: "executive",
     name: "Executive",
     description:
-      "Capa com imagem, avatar sobreposto e informações em cartão claro.",
+      "Branco com fita diagonal azul. Sóbrio, para quem fala com empresa.",
     category: "empresas",
-    layout: "cover",
+    layout: "banner",
+    ornament: "diagonal",
     featured: true,
     order: 2,
     defaults: {
-      accent: "#17478F",
-      background: "#132B52",
+      accent: "#1E7BE8",
+      background: "#FFFFFF",
       textColor: "#10233F",
-      buttonStyle: "soft",
+      buttonStyle: "row",
       buttonRadius: "rounded",
       fontFamily: "inter",
-      backgroundMode: "gradient",
+      backgroundMode: "solid",
     },
   },
   {
     key: "gourmet-dark",
     name: "Gourmet Dark",
     description:
-      "Fundo escuro elegante para restaurantes, com destaque para o cardápio.",
+      "Fundo escuro com foto de capa e dourado. O cardápio em primeiro lugar.",
     category: "restaurantes",
     layout: "spotlight",
     featured: true,
     order: 3,
     defaults: {
       accent: "#C9972B",
-      background: "#161310",
+      background: "#141210",
       textColor: "#FFFFFF",
-      buttonStyle: "outline",
+      buttonStyle: "row",
       buttonRadius: "rounded",
       fontFamily: "playfair",
-      backgroundMode: "gradient",
+      backgroundMode: "image",
     },
   },
   {
     key: "bistro",
     name: "Bistrô",
-    description: "Capa apetitosa no topo e botões suaves em cartão claro.",
+    description:
+      "Tons de café e capa apetitosa no topo. Aconchegante sem ser pesado.",
     category: "restaurantes",
     layout: "cover",
+    ornament: "waves",
     featured: false,
     order: 4,
     defaults: {
-      accent: "#B4472B",
-      background: "#2A1711",
-      textColor: "#241611",
-      buttonStyle: "soft",
-      buttonRadius: "pill",
+      accent: "#8B5E3C",
+      background: "#F3E6D6",
+      textColor: "#3A2A1E",
+      buttonStyle: "row",
+      buttonRadius: "rounded",
       fontFamily: "playfair",
-      backgroundMode: "gradient",
+      backgroundMode: "solid",
     },
   },
   {
     key: "professional",
     name: "Professional",
     description:
-      "Foto em destaque e contatos diretos. Ideal para profissionais liberais.",
+      "Degradê vivo e foto em destaque. Para profissional liberal que atende direto.",
     category: "profissionais",
     layout: "spotlight",
+    ornament: "blobs",
     featured: true,
     order: 5,
     defaults: {
-      accent: "#1B54B0",
-      background: "#12264A",
+      accent: "#34D399",
+      background: "#1E5FD6",
       textColor: "#FFFFFF",
-      buttonStyle: "solid",
+      buttonStyle: "row",
       buttonRadius: "pill",
       fontFamily: "inter",
       backgroundMode: "gradient",
@@ -165,36 +197,37 @@ export const TEMPLATES: TemplateDefinition[] = [
   {
     key: "consultant",
     name: "Consultant",
-    description: "Layout editorial com tipografia serifada e ar de autoridade.",
+    description:
+      "Preto e branco, foto de fundo e tipografia serifada. Ar de autoridade.",
     category: "profissionais",
-    layout: "editorial",
+    layout: "spotlight",
     featured: false,
     order: 6,
     defaults: {
-      accent: "#1F3A5F",
-      background: "#F3EFE7",
-      textColor: "#1A1A1A",
-      buttonStyle: "outline",
-      buttonRadius: "square",
+      accent: "#D7DCE2",
+      background: "#2B3238",
+      textColor: "#FFFFFF",
+      buttonStyle: "row",
+      buttonRadius: "rounded",
       fontFamily: "playfair",
-      backgroundMode: "solid",
+      backgroundMode: "image",
     },
   },
   {
     key: "power-gym",
     name: "Power Gym",
     description:
-      "Alto contraste, botões largos e energia. Feito para academias.",
+      "Roxo profundo com brilho e botões de vidro. Feito para academia.",
     category: "academias",
     layout: "neon",
     featured: true,
     order: 7,
     defaults: {
-      accent: "#38E07B",
-      background: "#0A0F16",
+      accent: "#7B5BFF",
+      background: "#150F2E",
       textColor: "#FFFFFF",
-      buttonStyle: "glass",
-      buttonRadius: "square",
+      buttonStyle: "row",
+      buttonRadius: "rounded",
       fontFamily: "poppins",
       backgroundMode: "gradient",
     },
@@ -202,17 +235,19 @@ export const TEMPLATES: TemplateDefinition[] = [
   {
     key: "barber-classic",
     name: "Barber Classic",
-    description: "Visual masculino clássico, fundo grafite e detalhes dourados.",
+    description:
+      "Grafite com riscos dourados. Masculino clássico, de barbearia de bairro.",
     category: "barbearias",
     layout: "spotlight",
+    ornament: "streaks",
     featured: true,
     order: 8,
     defaults: {
       accent: "#C9A227",
-      background: "#1A1A1A",
+      background: "#121212",
       textColor: "#FFFFFF",
-      buttonStyle: "outline",
-      buttonRadius: "square",
+      buttonStyle: "row",
+      buttonRadius: "rounded",
       fontFamily: "poppins",
       backgroundMode: "gradient",
     },
@@ -221,16 +256,17 @@ export const TEMPLATES: TemplateDefinition[] = [
     key: "beauty-soft",
     name: "Beauty Soft",
     description:
-      "Tons suaves e botões arredondados para salões e estética.",
+      "Lilás suave com manchas difusas e botões em pílula. Delicado.",
     category: "saloes",
-    layout: "card",
+    layout: "banner",
+    ornament: "blobs",
     featured: true,
     order: 9,
     defaults: {
-      accent: "#C2557F",
-      background: "#F6E7EE",
+      accent: "#B45FD1",
+      background: "#F6EAF7",
       textColor: "#3B2230",
-      buttonStyle: "soft",
+      buttonStyle: "row",
       buttonRadius: "pill",
       fontFamily: "poppins",
       backgroundMode: "gradient",
@@ -240,72 +276,96 @@ export const TEMPLATES: TemplateDefinition[] = [
     key: "realty",
     name: "Realty",
     description:
-      "Faixa superior com a marca e contatos rápidos para imobiliárias.",
+      "Capa de imóvel no topo e contatos rápidos logo abaixo.",
     category: "imobiliarias",
-    layout: "split",
+    layout: "cover",
     featured: false,
     order: 10,
     defaults: {
-      accent: "#16305C",
-      background: "#16305C",
+      accent: "#2B6CB0",
+      background: "#14263F",
       textColor: "#10233F",
-      buttonStyle: "solid",
+      buttonStyle: "row",
       buttonRadius: "rounded",
       fontFamily: "inter",
-      backgroundMode: "solid",
+      backgroundMode: "image",
     },
   },
   {
     key: "shop",
     name: "Shop",
-    description: "Vitrine simples com logo grande e botões de compra.",
+    description:
+      "Vitrine escura e moderna, com a marca no alto e botões de compra.",
     category: "lojas",
-    layout: "banner",
+    layout: "spotlight",
     featured: true,
     order: 11,
     defaults: {
-      accent: "#1B54B0",
-      background: "#FFFFFF",
-      textColor: "#10233F",
-      buttonStyle: "solid",
+      accent: "#4F7FFF",
+      background: "#10141F",
+      textColor: "#FFFFFF",
+      buttonStyle: "row",
       buttonRadius: "rounded",
       fontFamily: "poppins",
-      backgroundMode: "solid",
+      backgroundMode: "gradient",
     },
   },
   {
     key: "care-clinic",
     name: "Care Clinic",
     description:
-      "Claro, limpo e confiável. Agendamento em primeiro lugar.",
+      "Creme com folhas nos cantos. Calmo, limpo, agendamento na frente.",
     category: "clinicas",
-    layout: "split",
+    layout: "banner",
+    ornament: "leaves",
     featured: true,
     order: 12,
     defaults: {
-      accent: "#1596A3",
-      background: "#1596A3",
-      textColor: "#10233F",
-      buttonStyle: "soft",
+      accent: "#2E9E6B",
+      background: "#F3F1E9",
+      textColor: "#223229",
+      buttonStyle: "row",
       buttonRadius: "rounded",
       fontFamily: "inter",
       backgroundMode: "solid",
     },
   },
   {
-    key: "minimal",
-    name: "Minimal",
-    description: "O essencial: nome, descrição e links. Nada mais.",
-    category: "outros",
-    layout: "banner",
-    featured: false,
+    key: "concessionaria",
+    name: "Concessionária",
+    description:
+      "Página escura com faixas anguladas e foto do veículo. Revenda, oficina e autopeças.",
+    category: "automotivo",
+    layout: "spotlight",
+    ornament: "angles",
+    featured: true,
     order: 13,
     defaults: {
-      accent: "#10233F",
+      accent: "#E11D2E",
+      background: "#121418",
+      textColor: "#10233F",
+      buttonStyle: "row",
+      buttonRadius: "rounded",
+      fontFamily: "poppins",
+      backgroundMode: "image",
+    },
+  },
+  {
+    key: "minimal",
+    name: "Minimal",
+    description:
+      "Branco com uma onda verde na lateral. O essencial, bem respirado.",
+    category: "outros",
+    layout: "banner",
+    ornament: "sidewave",
+    featured: false,
+    order: 14,
+    defaults: {
+      accent: "#22A45D",
       background: "#FFFFFF",
       textColor: "#10233F",
-      buttonStyle: "outline",
-      buttonRadius: "square",
+      buttonStyle: "row",
+      buttonRadius: "rounded",
       fontFamily: "inter",
       backgroundMode: "solid",
     },
@@ -313,17 +373,19 @@ export const TEMPLATES: TemplateDefinition[] = [
   {
     key: "midnight",
     name: "Midnight",
-    description: "Escuro com brilho sutil e botões de vidro. Moderno e versátil.",
+    description:
+      "Violeta escuro com lascas diagonais. Moderno e serve para qualquer ramo.",
     category: "outros",
-    layout: "neon",
+    layout: "spotlight",
+    ornament: "shards",
     featured: false,
-    order: 14,
+    order: 15,
     defaults: {
-      accent: "#5B92E5",
-      background: "#0B1220",
+      accent: "#7C5CFF",
+      background: "#16122B",
       textColor: "#FFFFFF",
-      buttonStyle: "glass",
-      buttonRadius: "pill",
+      buttonStyle: "row",
+      buttonRadius: "rounded",
       fontFamily: "inter",
       backgroundMode: "gradient",
     },
@@ -347,6 +409,7 @@ export const fontStack = (value: string) =>
   FONT_OPTIONS.find((f) => f.value === value)?.stack ?? FONT_OPTIONS[0].stack;
 
 export const BUTTON_STYLES = [
+  { value: "row", label: "Linha" },
   { value: "solid", label: "Sólido" },
   { value: "soft", label: "Suave" },
   { value: "outline", label: "Contorno" },

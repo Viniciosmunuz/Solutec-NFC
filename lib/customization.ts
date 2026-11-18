@@ -47,8 +47,8 @@ export function toCustomization(row: CustomizationRow): PublicCustomization {
     textColor: row.textColor,
     buttonStyle: pick(
       row.buttonStyle,
-      ["solid", "outline", "soft", "glass"] as const,
-      "solid",
+      ["row", "solid", "outline", "soft", "glass"] as const,
+      "row",
     ),
     buttonRadius: pick(
       row.buttonRadius,

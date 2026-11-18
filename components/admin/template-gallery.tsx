@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Image from "next/image";
 import { Check, Eye, Search } from "lucide-react";
 import PublicPage, {
   type PublicCustomization,
@@ -112,9 +113,20 @@ function demoData(template: TemplateDefinition): {
   };
 }
 
-/** Miniatura viva: o mesmo renderizador da página pública, em escala. */
+/**
+ * Miniatura do template.
+ *
+ * Por baixo fica sempre a página de verdade, renderizada em escala — é o que
+ * garante que a vitrine nunca fica desatualizada em relação ao template.
+ *
+ * Por cima entra a arte do template (`public/templates/<key>.png`) quando ele
+ * está marcado com `art: true` em lib/templates.ts. A arte cobre a miniatura
+ * viva só depois de carregar, então não existe piscada nem buraco branco.
+ */
 export function TemplateThumb({ template }: { template: TemplateDefinition }) {
   const { custom, links } = useMemo(() => demoData(template), [template]);
+  const [artReady, setArtReady] = useState(false);
+
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden">
       <div
@@ -128,6 +140,21 @@ export function TemplateThumb({ template }: { template: TemplateDefinition }) {
           preview
         />
       </div>
+
+      {template.art ? (
+        <Image
+          src={`/templates/${template.key}.png`}
+          alt=""
+          fill
+          sizes="(max-width: 768px) 50vw, 25vw"
+          className={cn(
+            "object-cover transition-opacity duration-200",
+            artReady ? "opacity-100" : "opacity-0",
+          )}
+          onLoad={() => setArtReady(true)}
+          onError={() => setArtReady(false)}
+        />
+      ) : null}
     </div>
   );
 }

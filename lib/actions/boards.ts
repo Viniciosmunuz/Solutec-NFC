@@ -32,7 +32,7 @@ const customizationSchema = z.object({
   accent: z.string().regex(/^#[0-9a-fA-F]{6}$/, "Cor inválida."),
   background: z.string().regex(/^#[0-9a-fA-F]{6}$/, "Cor inválida."),
   textColor: z.string().regex(/^#[0-9a-fA-F]{6}$/, "Cor inválida."),
-  buttonStyle: z.enum(["solid", "outline", "soft", "glass"]),
+  buttonStyle: z.enum(["row", "solid", "outline", "soft", "glass"]),
   buttonRadius: z.enum(["rounded", "pill", "square"]),
   fontFamily: z.enum(["inter", "poppins", "playfair", "mono"]),
   backgroundMode: z.enum(["solid", "gradient", "image"]),
