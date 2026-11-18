@@ -211,6 +211,12 @@ export default function DesignEditor({
             label="Foto de perfil"
           />
           <Switch
+            checked={value.avatarRing}
+            onChange={(v) => set("avatarRing", v)}
+            label="Borda na foto de perfil"
+            description="O anel colorido em volta da foto."
+          />
+          <Switch
             checked={value.showLogo}
             onChange={(v) => set("showLogo", v)}
             label="Logotipo"

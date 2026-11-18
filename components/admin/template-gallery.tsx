@@ -103,6 +103,7 @@ function demoData(template: TemplateDefinition): {
       fontFamily: d.fontFamily,
       backgroundMode: d.backgroundMode,
       showAvatar: true,
+      avatarRing: true,
       showLogo: false,
       showBio: true,
       showSocial: true,

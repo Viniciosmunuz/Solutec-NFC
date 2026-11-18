@@ -135,6 +135,8 @@ model Customization {
   backgroundMode String @default("gradient") // solid | gradient | image
 
   showAvatar  Boolean @default(true)
+  /// Anel colorido em volta da foto de perfil
+  avatarRing  Boolean @default(true)
   showLogo    Boolean @default(true)
   showBio     Boolean @default(true)
   showSocial  Boolean @default(true)

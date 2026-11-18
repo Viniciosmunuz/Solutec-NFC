@@ -45,6 +45,7 @@ const customizationSchema = z.object({
   fontFamily: z.enum(["inter", "poppins", "playfair", "mono"]),
   backgroundMode: z.enum(["solid", "gradient", "image"]),
   showAvatar: z.boolean(),
+  avatarRing: z.boolean().catch(true),
   showLogo: z.boolean(),
   showBio: z.boolean(),
   showSocial: z.boolean(),

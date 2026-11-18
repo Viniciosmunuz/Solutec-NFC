@@ -37,6 +37,8 @@ export type PublicCustomization = {
   fontFamily: "inter" | "poppins" | "playfair" | "mono";
   backgroundMode: "solid" | "gradient" | "image";
   showAvatar: boolean;
+  /** anel colorido em volta da foto de perfil */
+  avatarRing: boolean;
   showLogo: boolean;
   showBio: boolean;
   showSocial: boolean;
@@ -113,6 +115,12 @@ function Avatar({
   const { custom } = ctx;
   if (!custom.showAvatar) return null;
 
+  // Sem o anel a foto continua com a sombra — é ela que descola o avatar do
+  // fundo. Tirar as duas deixaria a foto parecendo colada na página.
+  const anel = custom.avatarRing
+    ? `0 0 0 4px ${ring ?? hexToRgba(custom.accent, 0.35)}, `
+    : "";
+
   return (
     <div
       className="relative overflow-hidden bg-black/10"
@@ -120,7 +128,7 @@ function Avatar({
         width: size,
         height: size,
         borderRadius: square ? 18 : 999,
-        boxShadow: `0 0 0 4px ${ring ?? hexToRgba(custom.accent, 0.35)}, 0 12px 30px rgba(0,0,0,0.25)`,
+        boxShadow: `${anel}0 12px 30px rgba(0,0,0,0.25)`,
       }}
     >
       {custom.avatarUrl ? (

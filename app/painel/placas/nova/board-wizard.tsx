@@ -72,6 +72,7 @@ function defaultsFor(key: string): PublicCustomization {
     fontFamily: d.fontFamily,
     backgroundMode: d.backgroundMode,
     showAvatar: true,
+    avatarRing: true,
     showLogo: true,
     showBio: true,
     showSocial: true,

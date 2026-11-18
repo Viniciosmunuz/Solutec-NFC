@@ -27,6 +27,7 @@ type CustomizationRow = {
   fontFamily: string;
   backgroundMode: string;
   showAvatar: boolean;
+  avatarRing: boolean;
   showLogo: boolean;
   showBio: boolean;
   showSocial: boolean;
@@ -78,6 +79,7 @@ export function toCustomization(row: CustomizationRow): PublicCustomization {
       "gradient",
     ),
     showAvatar: row.showAvatar,
+    avatarRing: row.avatarRing,
     showLogo: row.showLogo,
     showBio: row.showBio,
     showSocial: row.showSocial,
