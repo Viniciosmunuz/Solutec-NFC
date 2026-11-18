@@ -79,14 +79,32 @@ export function TiktokIcon(props: IconProps) {
   );
 }
 
-export function WhatsappIcon(props: IconProps) {
+/**
+ * WhatsApp, desenhado cheio e não em traço.
+ *
+ * A marca do WhatsApp é um balão sólido com o fone vazado dentro. Em traço
+ * ela simplesmente não se reconhece: vira um círculo com um risco. Aqui o
+ * balão é preenchido e o fone é recortado dele (`evenodd`), que é o que faz
+ * o ícone ser lido como WhatsApp mesmo em 20px.
+ *
+ * Por ser cheio, ele ignora o `stroke` do grupo e usa `currentColor` como
+ * preenchimento — assim continua herdando a cor de onde está.
+ */
+export function WhatsappIcon({ className, size }: IconProps) {
   return (
-    <Svg {...props}>
-      {/* Balão com a ponta embaixo à esquerda. */}
-      <path d="M3.4 20.6l1.3-3.9A8.4 8.4 0 1 1 7.9 19.6l-4.5 1z" />
-      {/* Fone como linha aberta, não como contorno fechado: fechado, o miolo
-          preenche e vira um borrão no tamanho em que o ícone é usado. */}
-      <path d="M9.6 8.9 10.9 11l-1 1a5.2 5.2 0 0 0 2.6 2.6l1-1 2.1 1.3" />
-    </Svg>
+    <svg
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      width={size}
+      height={size}
+      className={className}
+      aria-hidden="true"
+    >
+      <path
+        fillRule="evenodd"
+        clipRule="evenodd"
+        d="M12.04 2.4c-5.3 0-9.6 4.3-9.6 9.6 0 1.7.45 3.34 1.3 4.8L2.4 21.6l4.94-1.3a9.56 9.56 0 0 0 4.7 1.2h.01c5.3 0 9.6-4.3 9.6-9.6 0-2.56-1-4.97-2.81-6.78a9.53 9.53 0 0 0-6.8-2.82Zm5.63 13.72c-.24.67-1.39 1.28-1.94 1.36-.5.08-1.12.1-1.81-.11-.42-.14-.95-.31-1.64-.61-2.88-1.25-4.76-4.15-4.9-4.34-.14-.19-1.17-1.56-1.17-2.97 0-1.42.74-2.11 1-2.4.26-.29.57-.36.76-.36l.54.01c.18.01.41-.6.63.48.23.55.78 1.9.85 2.04.07.14.11.3.02.49-.9.19-.14.3-.28.47-.14.16-.29.36-.41.49-.14.14-.28.29-.12.57.16.28.71 1.17 1.52 1.9 1.04.93 1.92 1.22 2.2 1.36.27.14.43.12.59-.7.16-.19.68-.8.86-1.07.18-.28.36-.23.61-.14.25.9.16 1.46 1.83 1.72 2.16.26.7.26 1.3.02 1.96Z"
+      />
+    </svg>
   );
 }

@@ -8,6 +8,7 @@ import { SolutecLogo } from "@/components/brand/logo";
 import { db } from "@/lib/db";
 import { toCustomization } from "@/lib/customization";
 import { ehAcessoDeRobo } from "@/lib/robots";
+import { getSession } from "@/lib/auth";
 import { getTemplate } from "@/lib/templates";
 import { shadeColor } from "@/lib/utils";
 import { publicUrl } from "@/lib/urls";
@@ -107,9 +108,24 @@ export default async function PublicBoardPage({ params, searchParams }: Params &
   const referer = headerList.get("referer");
   const boardId = board.id;
 
-  // Robô, monitor e verificação por linha de comando não entram na conta:
-  // o número do painel precisa significar "pessoas que encostaram o celular".
-  const contar = !ehAcessoDeRobo(ua);
+  /**
+   * Quem conta como acesso.
+   *
+   * O número do painel precisa significar "pessoas que encostaram o celular
+   * na placa". Ficam de fora:
+   *
+   * - robô, monitor e verificação por linha de comando;
+   * - a própria equipe, reconhecida pela sessão do painel. É o caso mais
+   *   comum de inflar o número sem ninguém perceber: o operador abre a
+   *   página dez vezes conferindo o próprio trabalho;
+   * - quem chegou clicando de dentro do painel, mesmo sem sessão válida no
+   *   momento da leitura.
+   *
+   * O cliente que recebe a placa nunca cai em nenhum desses casos.
+   */
+  const daEquipe = Boolean(await getSession());
+  const veioDoPainel = Boolean(referer && /\/painel(\/|$|\?)/.test(referer));
+  const contar = !ehAcessoDeRobo(ua) && !daEquipe && !veioDoPainel;
 
   after(async () => {
     if (!contar) return;
