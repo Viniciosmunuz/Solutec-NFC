@@ -112,25 +112,6 @@ export const categoryLabel = (value: string) =>
 
 export const TEMPLATES: TemplateDefinition[] = [
   {
-    key: "portfolio",
-    name: "Portfólio",
-    description:
-      "Página completa de perfil: fatos, redes com números, projetos, galeria e chamada final. Para quem mostra trabalho.",
-    category: "profissionais",
-    layout: "perfil",
-    featured: true,
-    order: 1,
-    defaults: {
-      accent: "#0593D5",
-      background: "#0B1220",
-      textColor: "#FFFFFF",
-      buttonStyle: "row",
-      buttonRadius: "rounded",
-      fontFamily: "inter",
-      backgroundMode: "solid",
-    },
-  },
-  {
     key: "do-zero",
     name: "Do zero",
     description:
