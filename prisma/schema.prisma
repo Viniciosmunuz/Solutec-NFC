@@ -134,6 +134,18 @@ model Customization {
   fontFamily    String  @default("inter") // inter | poppins | playfair | mono
   backgroundMode String @default("gradient") // solid | gradient | image
 
+  /// Forma da foto de perfil: circulo | quadrado
+  avatarShape String  @default("circulo")
+
+  /// Respiro entre os blocos: compacto | normal | arejado
+  spacing     String  @default("normal")
+  /// Multiplicador do tamanho dos textos (0.85 a 1.25)
+  fontScale   Float   @default(1)
+  /// Opacidade da capa quando ela é o fundo da página, em %
+  coverOpacity Float  @default(100)
+  /// Linha de redes sociais: acima | abaixo dos botões
+  socialPosition String @default("abaixo")
+
   showAvatar  Boolean @default(true)
   /// Anel colorido em volta da foto de perfil
   avatarRing  Boolean @default(true)
@@ -162,6 +174,11 @@ model Link {
   active   Boolean @default(true)
   /// true = ícone redondo na linha de sociais; false = botão de largura total
   asSocial Boolean @default(false)
+
+  /// Botão de destaque: maior e com a cor cheia da marca
+  highlight Boolean @default(false)
+  /// Cor própria deste botão; sem ela vale a cor do template
+  color     String?
 
   clicks Click[]
 

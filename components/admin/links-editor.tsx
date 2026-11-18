@@ -24,6 +24,7 @@ import { Input, Switch } from "@/components/ui/field";
 import { Modal } from "@/components/ui/modal";
 import { EmptyState } from "@/components/ui/display";
 import { LINK_TYPES, buildLinkUrl, getLinkType } from "@/lib/links";
+import { COLOR_PRESETS } from "@/lib/templates";
 import { cn, hexToRgba } from "@/lib/utils";
 
 export type EditorLink = {
@@ -34,6 +35,10 @@ export type EditorLink = {
   value: string;
   asSocial: boolean;
   active: boolean;
+  /** botão maior, com a cor cheia — a ação principal da placa */
+  highlight: boolean;
+  /** cor própria deste botão; null usa a do template */
+  color: string | null;
 };
 
 let seq = 0;
@@ -48,6 +53,8 @@ export function makeLink(type: string): EditorLink {
     value: "",
     asSocial: def.socialByDefault,
     active: true,
+    highlight: false,
+    color: null,
   };
 }
 
@@ -286,6 +293,46 @@ function SortableRow({
               label="Mostrar como ícone de rede social"
               description="Em vez de um botão largo, aparece como ícone redondo na linha de sociais."
             />
+          </div>
+          <div className="sm:col-span-2">
+            <Switch
+              checked={link.highlight}
+              onChange={(highlight) => onUpdate({ highlight })}
+              label="Botão de destaque"
+              description="Fica maior e com a cor cheia. Use em um só: se tudo é destaque, nada é."
+            />
+          </div>
+          <div className="sm:col-span-2 flex flex-wrap items-center gap-2 rounded-xl border border-line bg-[#fafbfd] px-3 py-2.5">
+            <span className="text-[12.5px] font-semibold text-[#3b4a68]">
+              Cor deste botão
+            </span>
+            <button
+              type="button"
+              onClick={() => onUpdate({ color: null })}
+              className={cn(
+                "rounded-md px-2 py-1 text-[11.5px] font-semibold transition-colors",
+                link.color
+                  ? "text-[#6b7a99] hover:bg-white hover:text-brand-700"
+                  : "bg-white text-brand-700 shadow-card",
+              )}
+            >
+              Do template
+            </button>
+            {COLOR_PRESETS.map((hex) => (
+              <button
+                key={hex}
+                type="button"
+                aria-label={`Usar a cor ${hex}`}
+                onClick={() => onUpdate({ color: hex })}
+                className={cn(
+                  "size-6 rounded-full border transition-transform hover:scale-110",
+                  link.color === hex
+                    ? "border-[#10233f] ring-2 ring-brand-300"
+                    : "border-black/10",
+                )}
+                style={{ backgroundColor: hex }}
+              />
+            ))}
           </div>
         </div>
       ) : null}

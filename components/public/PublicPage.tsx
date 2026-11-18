@@ -12,6 +12,10 @@ export type PublicLink = {
   label: string;
   url: string;
   asSocial: boolean;
+  /** botão maior, com a cor cheia da marca */
+  highlight?: boolean;
+  /** cor própria deste botão */
+  color?: string | null;
 };
 
 export type PublicCustomization = {
@@ -39,6 +43,16 @@ export type PublicCustomization = {
   showAvatar: boolean;
   /** anel colorido em volta da foto de perfil */
   avatarRing: boolean;
+  /** forma da foto de perfil */
+  avatarShape: "circulo" | "quadrado";
+  /** respiro entre os blocos */
+  spacing: "compacto" | "normal" | "arejado";
+  /** multiplicador do tamanho dos textos */
+  fontScale: number;
+  /** opacidade da capa como fundo, em % */
+  coverOpacity: number;
+  /** linha de sociais acima ou abaixo dos botões */
+  socialPosition: "acima" | "abaixo";
   showLogo: boolean;
   showBio: boolean;
   showSocial: boolean;
@@ -54,6 +68,13 @@ type Props = {
   slug?: string;
   /** true quando renderizado dentro do editor (sem tracking) */
   preview?: boolean;
+};
+
+/** Espaço entre os botões, por nível de respiro escolhido. */
+const GAPS: Record<string, number> = {
+  compacto: 8,
+  normal: 12,
+  arejado: 18,
 };
 
 const RADIUS: Record<PublicCustomization["buttonRadius"], string> = {
@@ -72,6 +93,10 @@ type Ctx = {
   /** cor de texto principal sobre o fundo da página */
   pageText: string;
   radius: string;
+  /** multiplicador de tamanho dos textos */
+  scale: number;
+  /** espaço entre os botões, em px */
+  gap: number;
   onLinkClick: (link: PublicLink) => void;
 };
 
@@ -115,6 +140,15 @@ function Avatar({
   const { custom } = ctx;
   if (!custom.showAvatar) return null;
 
+  // A escolha do operador manda; o `square` do layout é só o padrão de quem
+  // não escolheu nada.
+  const quadrado =
+    custom.avatarShape === "quadrado"
+      ? true
+      : custom.avatarShape === "circulo"
+        ? false
+        : square;
+
   // Sem o anel a foto continua com a sombra — é ela que descola o avatar do
   // fundo. Tirar as duas deixaria a foto parecendo colada na página.
   const anel = custom.avatarRing
@@ -127,7 +161,7 @@ function Avatar({
       style={{
         width: size,
         height: size,
-        borderRadius: square ? 18 : 999,
+        borderRadius: quadrado ? Math.round(size * 0.2) : 999,
         boxShadow: `${anel}0 12px 30px rgba(0,0,0,0.25)`,
       }}
     >
@@ -172,12 +206,12 @@ function Heading({
   ctx,
   align = "center",
   color,
-  nameSize = "text-[26px]",
+  nameSize = 26,
 }: {
   ctx: Ctx;
   align?: "center" | "left";
   color: string;
-  nameSize?: string;
+  nameSize?: number;
 }) {
   const { custom } = ctx;
   return (
@@ -185,23 +219,30 @@ function Heading({
       className={align === "center" ? "text-center" : "text-left"}
       style={{ color }}
     >
-      <h1 className={`${nameSize} font-bold leading-tight tracking-tight`}>
+      <h1
+        className="font-bold leading-tight tracking-tight"
+        style={{ fontSize: Math.round(nameSize * ctx.scale) }}
+      >
         {custom.displayName || "Nome da empresa"}
       </h1>
       {custom.headline ? (
         <p
-          className="mt-1 text-[13px] font-semibold uppercase tracking-[0.14em]"
-          style={{ color: custom.accent, opacity: 0.95 }}
+          className="mt-1 font-semibold uppercase tracking-[0.14em]"
+          style={{
+            color: custom.accent,
+            opacity: 0.95,
+            fontSize: Math.round(13 * ctx.scale),
+          }}
         >
           {custom.headline}
         </p>
       ) : null}
       {custom.showBio && custom.bio ? (
         <p
-          className={`mt-3 max-w-[34ch] text-[14px] leading-relaxed opacity-80 ${
+          className={`mt-3 max-w-[34ch] leading-relaxed opacity-80 ${
             align === "center" ? "mx-auto" : ""
           }`}
-          style={{ color }}
+          style={{ color, fontSize: Math.round(14 * ctx.scale) }}
         >
           {custom.bio}
         </p>
@@ -210,8 +251,12 @@ function Heading({
   );
 }
 
-function buttonStyles(ctx: Ctx, onDarkSurface: boolean): React.CSSProperties {
-  const accent = ctx.custom.accent;
+function buttonStyles(
+  ctx: Ctx,
+  onDarkSurface: boolean,
+  corDoLink?: string,
+): React.CSSProperties {
+  const accent = corDoLink ?? ctx.custom.accent;
   const radius = ctx.radius;
 
   switch (ctx.custom.buttonStyle) {
@@ -274,18 +319,46 @@ function LinkButton({
   onDarkSurface: boolean;
 }) {
   const Icon = getLinkType(link.type).icon;
-  const { accent, buttonStyle } = ctx.custom;
+  const { buttonStyle } = ctx.custom;
   const isRow = buttonStyle === "row";
+
+  // Cor própria do link, quando houver, no lugar da cor do template.
+  const accent =
+    link.color && /^#[0-9a-fA-F]{6}$/.test(link.color)
+      ? link.color
+      : ctx.custom.accent;
+
+  /**
+   * Botão de destaque: a cor preenche a linha inteira em vez de ficar só no
+   * chip. É o que diferencia "peça pelo WhatsApp" de mais um link na lista.
+   */
+  const destaque = Boolean(link.highlight);
 
   /**
    * No estilo "row" o ícone ganha um chip com a cor da marca; nos outros ele
    * segue a cor do próprio botão, como antes.
    */
   const chipStyle: React.CSSProperties = isRow
+    ? destaque
+      ? {
+          backgroundColor: "rgba(255,255,255,0.22)",
+          color: readableText(accent),
+          borderRadius: ctx.custom.buttonRadius === "square" ? 6 : 11,
+        }
+      : {
+          backgroundColor: accent,
+          color: readableText(accent),
+          borderRadius: ctx.custom.buttonRadius === "square" ? 6 : 11,
+        }
+    : {};
+
+  const estiloBase = buttonStyles(ctx, onDarkSurface, accent);
+  const estiloDestaque: React.CSSProperties = destaque
     ? {
         backgroundColor: accent,
+        border: `1px solid ${accent}`,
         color: readableText(accent),
-        borderRadius: ctx.custom.buttonRadius === "square" ? 6 : 11,
+        borderRadius: ctx.radius,
       }
     : {};
 
@@ -295,14 +368,20 @@ function LinkButton({
       target={link.url.startsWith("http") ? "_blank" : undefined}
       rel="noopener noreferrer"
       onClick={() => ctx.onLinkClick(link)}
-      className={`group flex w-full items-center text-[15px] font-semibold transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99] ${
-        isRow ? "gap-3 py-2 pl-2 pr-3.5" : "gap-3 px-4 py-3.5"
+      className={`group flex w-full items-center font-semibold transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99] ${
+        isRow
+          ? destaque
+            ? "gap-3 py-3 pl-3 pr-4"
+            : "gap-3 py-2 pl-2 pr-3.5"
+          : "gap-3 px-4 py-3.5"
       }`}
       style={{
-        ...buttonStyles(ctx, onDarkSurface),
+        ...estiloBase,
+        ...estiloDestaque,
+        fontSize: Math.round((destaque ? 16 : 15) * ctx.scale),
         boxShadow:
-          buttonStyle === "solid"
-            ? `0 6px 18px ${hexToRgba(accent, 0.28)}`
+          destaque || buttonStyle === "solid"
+            ? `0 8px 22px ${hexToRgba(accent, 0.35)}`
             : isRow
               ? onDarkSurface
                 ? "0 2px 10px rgba(0,0,0,0.35)"
@@ -331,6 +410,139 @@ function LinkButton({
   );
 }
 
+/**
+ * Azulejo da grade: ícone grande em cima, rótulo embaixo.
+ *
+ * Em duas colunas não cabe o formato de linha — o rótulo quebraria. Aqui o
+ * ícone é o que identifica, e o texto vira legenda.
+ */
+function GridTile({
+  ctx,
+  link,
+  onDarkSurface,
+}: {
+  ctx: Ctx;
+  link: PublicLink;
+  onDarkSurface: boolean;
+}) {
+  const Icon = getLinkType(link.type).icon;
+  const accent =
+    link.color && /^#[0-9a-fA-F]{6}$/.test(link.color)
+      ? link.color
+      : ctx.custom.accent;
+  const destaque = Boolean(link.highlight);
+
+  return (
+    <a
+      href={link.url}
+      target={link.url.startsWith("http") ? "_blank" : undefined}
+      rel="noopener noreferrer"
+      onClick={() => ctx.onLinkClick(link)}
+      className={`flex h-full flex-col items-center justify-center gap-2.5 px-3 text-center font-semibold transition-all duration-200 hover:-translate-y-0.5 ${
+        destaque ? "py-4" : "py-5"
+      }`}
+      style={{
+        ...buttonStyles(ctx, onDarkSurface, accent),
+        ...(destaque
+          ? {
+              backgroundColor: accent,
+              border: `1px solid ${accent}`,
+              color: readableText(accent),
+            }
+          : {}),
+        fontSize: Math.round(13.5 * ctx.scale),
+        boxShadow: destaque
+          ? `0 8px 22px ${hexToRgba(accent, 0.35)}`
+          : onDarkSurface
+            ? "0 2px 10px rgba(0,0,0,0.35)"
+            : "0 4px 14px rgba(16,35,63,0.08)",
+      }}
+    >
+      <span
+        className="grid size-11 place-items-center"
+        style={{
+          backgroundColor: destaque ? "rgba(255,255,255,0.22)" : accent,
+          color: readableText(accent),
+          borderRadius: ctx.custom.buttonRadius === "square" ? 8 : 999,
+        }}
+      >
+        <Icon className="size-[22px]" strokeWidth={2.2} />
+      </span>
+      <span className="leading-tight">{link.label}</span>
+    </a>
+  );
+}
+
+/**
+ * Cartão de destaque do layout `showcase`: o primeiro link ganha a capa de
+ * fundo e o tamanho de um banner. É onde entra "peça pelo cardápio" ou
+ * "agende sua visita" — a ação que paga a placa.
+ */
+function ShowcaseCard({
+  ctx,
+  link,
+}: {
+  ctx: Ctx;
+  link: PublicLink;
+}) {
+  const { custom } = ctx;
+  const Icon = getLinkType(link.type).icon;
+  const accent =
+    link.color && /^#[0-9a-fA-F]{6}$/.test(link.color)
+      ? link.color
+      : custom.accent;
+
+  return (
+    <a
+      href={link.url}
+      target={link.url.startsWith("http") ? "_blank" : undefined}
+      rel="noopener noreferrer"
+      onClick={() => ctx.onLinkClick(link)}
+      className="relative flex h-36 w-full items-end overflow-hidden transition-all duration-200 hover:-translate-y-0.5"
+      style={{
+        borderRadius: ctx.custom.buttonRadius === "square" ? 6 : 20,
+        boxShadow: `0 10px 28px ${hexToRgba(accent, 0.3)}`,
+      }}
+    >
+      {custom.coverUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={custom.coverUrl}
+          alt=""
+          className="absolute inset-0 size-full object-cover"
+          style={frame(custom.coverZoom, custom.coverX, custom.coverY)}
+        />
+      ) : null}
+      <div
+        className="absolute inset-0"
+        style={{
+          backgroundImage: custom.coverUrl
+            ? `linear-gradient(180deg, ${hexToRgba(accent, 0.25)}, ${hexToRgba(accent, 0.92)})`
+            : `linear-gradient(135deg, ${accent}, ${shadeColor(accent, -0.4)})`,
+        }}
+      />
+      <div
+        className="relative flex w-full items-center gap-3 p-4"
+        style={{ color: readableText(accent) }}
+      >
+        <span
+          className="grid size-11 shrink-0 place-items-center rounded-xl"
+          style={{ backgroundColor: "rgba(255,255,255,0.22)" }}
+        >
+          <Icon className="size-[22px]" strokeWidth={2.2} />
+        </span>
+        <span
+          className="flex-1 font-bold leading-tight"
+          style={{ fontSize: Math.round(17 * ctx.scale) }}
+        >
+          {link.label}
+        </span>
+        <ChevronRight className="size-5 shrink-0 opacity-80" strokeWidth={2.5} />
+      </div>
+    </a>
+  );
+}
+
 function Buttons({
   ctx,
   links,
@@ -354,7 +566,7 @@ function Buttons({
   }
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col" style={{ gap: ctx.gap }}>
       {links.map((link, i) => (
         <div
           key={link.id}
@@ -498,13 +710,18 @@ function Body({
 }) {
   return (
     <>
+      {ctx.custom.socialPosition === "acima" ? (
+        <SocialRow ctx={ctx} links={socialLinks} onDarkSurface={onDarkSurface} />
+      ) : null}
       <Buttons
         ctx={ctx}
         links={buttonLinks}
         hasSocial={socialLinks.length > 0}
         onDarkSurface={onDarkSurface}
       />
-      <SocialRow ctx={ctx} links={socialLinks} onDarkSurface={onDarkSurface} />
+      {ctx.custom.socialPosition === "abaixo" ? (
+        <SocialRow ctx={ctx} links={socialLinks} onDarkSurface={onDarkSurface} />
+      ) : null}
       {share ? <ShareBar ctx={ctx} /> : null}
     </>
   );
@@ -705,6 +922,12 @@ export default function PublicPage({
   const darkLayout = layout === "spotlight" || layout === "neon";
   const onDark = darkLayout || layout === "card" || layout === "cover";
   const pageText = darkLayout ? "#ffffff" : readableText(custom.background);
+  /**
+   * Os layouts novos não têm "versão clara" e "versão escura" separadas: o
+   * tom vem da cor de fundo escolhida. Olhar o nome do layout daria um bloco
+   * branco leitoso sobre fundo escuro.
+   */
+  const sobreEscuro = pageText.toLowerCase() === "#ffffff";
 
   const onLinkClick = useCallback(
     (link: PublicLink) => {
@@ -739,6 +962,8 @@ export default function PublicPage({
       onDark,
       pageText,
       radius: RADIUS[custom.buttonRadius] ?? RADIUS.rounded,
+      scale: Math.min(1.25, Math.max(0.85, custom.fontScale || 1)),
+      gap: GAPS[custom.spacing] ?? GAPS.normal,
       onLinkClick,
     }),
     [custom, slug, preview, onDark, pageText, onLinkClick],
@@ -774,7 +999,10 @@ export default function PublicPage({
         src={custom.coverUrl!}
         alt=""
         className="pointer-events-none absolute inset-0 size-full object-cover"
-        style={frame(custom.coverZoom, custom.coverX, custom.coverY)}
+        style={{
+          ...frame(custom.coverZoom, custom.coverX, custom.coverY),
+          opacity: Math.min(1, Math.max(0.1, (custom.coverOpacity ?? 100) / 100)),
+        }}
       />
       <div
         className="pointer-events-none absolute inset-0"
@@ -822,7 +1050,7 @@ export default function PublicPage({
           <div className="relative flex flex-col items-center gap-5">
             <Logo ctx={ctx} height={34} />
             <Avatar ctx={ctx} size={118} />
-            <Heading ctx={ctx} color="#fff" nameSize="text-[27px]" />
+            <Heading ctx={ctx} color="#fff" nameSize={27} />
           </div>
           <div className="mt-8 w-full">
             <Body
@@ -933,7 +1161,7 @@ export default function PublicPage({
               ctx={ctx}
               align="left"
               color={custom.textColor}
-              nameSize="text-[30px]"
+              nameSize={30}
             />
           </div>
           <div className="mt-7">{bodySemShare}</div>
@@ -970,6 +1198,186 @@ export default function PublicPage({
           </div>
         </div>
       </div>
+    );
+  }
+
+  // ---- hero: capa ocupando metade da tela ----
+  if (layout === "hero") {
+    return (
+      <Shell
+        style={shellStyle}
+        ornament={ornament}
+        accent={custom.accent}
+        onDark={darkLayout}
+        cover={coverLayer}
+      >
+        <div className="-mx-5 flex grow flex-col">
+          <div className="relative h-[48vh] min-h-[280px] w-full overflow-hidden">
+            {custom.coverUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={custom.coverUrl}
+                alt=""
+                className="absolute inset-0 size-full object-cover"
+                style={frame(custom.coverZoom, custom.coverX, custom.coverY)}
+              />
+            ) : (
+              <div
+                className="absolute inset-0"
+                style={{
+                  backgroundImage: `linear-gradient(140deg, ${custom.accent}, ${shadeColor(custom.accent, -0.45)})`,
+                }}
+              />
+            )}
+            {/* A sombra na base é o que deixa o nome legível sobre qualquer
+                foto, clara ou escura. */}
+            <div
+              className="absolute inset-0"
+              style={{
+                backgroundImage: `linear-gradient(180deg, rgba(0,0,0,0.1) 30%, ${hexToRgba(custom.background, 0.85)} 85%, ${custom.background} 100%)`,
+              }}
+            />
+            <div className="absolute inset-x-0 bottom-0 flex flex-col items-center gap-3 px-5 pb-5">
+              <Avatar ctx={ctx} size={84} />
+              <Heading ctx={ctx} color={pageText} nameSize={28} />
+            </div>
+          </div>
+
+          <div className="mt-6 px-5">{bodySemShare}</div>
+          <div className="px-5">
+            <Bottom ctx={ctx} color={pageText} />
+          </div>
+        </div>
+      </Shell>
+    );
+  }
+
+  // ---- grid: links em grade de dois ----
+  if (layout === "grid") {
+    return (
+      <Shell
+        style={shellStyle}
+        ornament={ornament}
+        accent={custom.accent}
+        onDark={darkLayout}
+        cover={coverLayer}
+      >
+        <div className="flex grow flex-col pt-14">
+          <div className="flex flex-col items-center gap-4">
+            <Logo ctx={ctx} height={34} />
+            <Avatar ctx={ctx} size={96} />
+            <Heading ctx={ctx} color={pageText} />
+          </div>
+
+          <div
+            className="mt-8 grid grid-cols-2"
+            style={{ gap: ctx.gap }}
+          >
+            {buttonLinks.map((link, i) => (
+              <div
+                key={link.id}
+                className="animate-in-up"
+                style={{
+                  animationDelay: `${i * 55}ms`,
+                  // Um link em destaque ocupa a linha inteira: é o que o
+                  // operador quis dizer ao destacá-lo.
+                  gridColumn: link.highlight ? "span 2" : undefined,
+                }}
+              >
+                <GridTile ctx={ctx} link={link} onDarkSurface={sobreEscuro} />
+              </div>
+            ))}
+          </div>
+
+          <SocialRow ctx={ctx} links={socialLinks} onDarkSurface={sobreEscuro} />
+          <Bottom ctx={ctx} color={pageText} />
+        </div>
+      </Shell>
+    );
+  }
+
+  // ---- aside: cartão deslocado, texto à esquerda ----
+  if (layout === "aside") {
+    return (
+      <Shell
+        style={shellStyle}
+        ornament={ornament}
+        accent={custom.accent}
+        onDark={darkLayout}
+        cover={coverLayer}
+      >
+        <div className="flex grow flex-col pt-12">
+          <div className="flex items-center gap-4">
+            <Avatar ctx={ctx} size={76} />
+            <div className="min-w-0 flex-1">
+              <Heading
+                ctx={ctx}
+                align="left"
+                color={pageText}
+                nameSize={24}
+              />
+            </div>
+          </div>
+
+          <div
+            className="mt-7 rounded-[22px] p-4"
+            style={{
+              backgroundColor: sobreEscuro
+                ? "rgba(255,255,255,0.05)"
+                : "rgba(255,255,255,0.7)",
+              border: `1px solid ${hexToRgba(custom.accent, 0.16)}`,
+            }}
+          >
+            {bodySemShare}
+          </div>
+
+          <Bottom ctx={ctx} color={pageText} />
+        </div>
+      </Shell>
+    );
+  }
+
+  // ---- showcase: primeiro link vira um cartão grande ----
+  if (layout === "showcase") {
+    const [primeiro, ...resto] = buttonLinks;
+    return (
+      <Shell
+        style={shellStyle}
+        ornament={ornament}
+        accent={custom.accent}
+        onDark={darkLayout}
+        cover={coverLayer}
+      >
+        <div className="flex grow flex-col pt-12">
+          <div className="flex flex-col items-center gap-4">
+            <Logo ctx={ctx} height={32} />
+            <Avatar ctx={ctx} size={88} />
+            <Heading ctx={ctx} color={pageText} />
+          </div>
+
+          {primeiro ? (
+            <div className="mt-7">
+              <ShowcaseCard ctx={ctx} link={primeiro} />
+            </div>
+          ) : null}
+
+          <div className="mt-4">
+            <Buttons
+              ctx={ctx}
+              links={resto}
+              hasSocial={socialLinks.length > 0}
+              onDarkSurface={sobreEscuro}
+            />
+            <SocialRow
+              ctx={ctx}
+              links={socialLinks}
+              onDarkSurface={sobreEscuro}
+            />
+          </div>
+
+          <Bottom ctx={ctx} color={pageText} />
+        </div>
+      </Shell>
     );
   }
 

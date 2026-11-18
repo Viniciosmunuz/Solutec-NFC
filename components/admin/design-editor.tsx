@@ -47,6 +47,31 @@ export default function DesignEditor({
                 onChange({ avatarZoom: f.zoom, avatarX: f.x, avatarY: f.y })
               }
             />
+            <div className="flex flex-col gap-2">
+              <span className="text-[13px] font-semibold text-[#3b4a68]">
+                Formato da foto
+              </span>
+              <div className="grid w-[190px] grid-cols-2 gap-2">
+                {[
+                  { v: "circulo", label: "Redonda" },
+                  { v: "quadrado", label: "Quadrada" },
+                ].map((o) => (
+                  <OptionChip
+                    key={o.v}
+                    active={value.avatarShape === o.v}
+                    onClick={() =>
+                      set("avatarShape", o.v as DesignState["avatarShape"])
+                    }
+                  >
+                    <span
+                      className="mr-1.5 inline-block size-3 border-2 border-current align-[-1px]"
+                      style={{ borderRadius: o.v === "circulo" ? 999 : 3 }}
+                    />
+                    {o.label}
+                  </OptionChip>
+                ))}
+              </div>
+            </div>
             <ImageUpload
               label="Logotipo"
               value={value.logoUrl}
@@ -61,8 +86,8 @@ export default function DesignEditor({
             label="Imagem de capa"
             value={value.coverUrl}
             onChange={(url) => set("coverUrl", url)}
-            shape="wide"
-            hint="Usada nos templates com capa e no fundo em modo imagem."
+            shape="tall"
+            hint="Fica em pé porque é assim que ela aparece no celular: ocupando a tela inteira. Nos templates com faixa de capa, só a parte de cima aparece."
             frame={{ zoom: value.coverZoom, x: value.coverX, y: value.coverY }}
             onFrame={(f) =>
               onChange({ coverZoom: f.zoom, coverX: f.x, coverY: f.y })
@@ -133,6 +158,27 @@ export default function DesignEditor({
             <option value="solid">Cor sólida</option>
             <option value="image">Imagem de capa</option>
           </Select>
+
+          {value.backgroundMode === "image" ? (
+            <div className="flex items-center gap-2.5 rounded-xl border border-line bg-[#fafbfd] px-3 py-2">
+              <span className="shrink-0 text-[12.5px] font-semibold text-[#6b7a99]">
+                Força da imagem
+              </span>
+              <input
+                type="range"
+                min={10}
+                max={100}
+                step={5}
+                value={value.coverOpacity}
+                aria-label="Opacidade da imagem de fundo"
+                onChange={(e) => set("coverOpacity", Number(e.target.value))}
+                className="h-1 flex-1 cursor-pointer appearance-none rounded-full bg-[#dde4f0] accent-brand-600"
+              />
+              <span className="w-10 shrink-0 text-right font-mono text-[11px] text-[#6b7a99]">
+                {Math.round(value.coverOpacity)}%
+              </span>
+            </div>
+          ) : null}
         </div>
       </section>
 
@@ -198,6 +244,50 @@ export default function DesignEditor({
               </option>
             ))}
           </Select>
+
+          <div className="flex flex-col gap-2">
+            <span className="text-[13px] font-semibold text-[#3b4a68]">
+              Tamanho dos textos
+            </span>
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                { v: 0.9, label: "Menor" },
+                { v: 1, label: "Padrão" },
+                { v: 1.15, label: "Maior" },
+              ].map((o) => (
+                <OptionChip
+                  key={o.v}
+                  active={Math.abs(value.fontScale - o.v) < 0.03}
+                  onClick={() => set("fontScale", o.v)}
+                >
+                  {o.label}
+                </OptionChip>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <span className="text-[13px] font-semibold text-[#3b4a68]">
+              Respiro entre os botões
+            </span>
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                { v: "compacto", label: "Compacto" },
+                { v: "normal", label: "Normal" },
+                { v: "arejado", label: "Arejado" },
+              ].map((o) => (
+                <OptionChip
+                  key={o.v}
+                  active={value.spacing === o.v}
+                  onClick={() =>
+                    set("spacing", o.v as DesignState["spacing"])
+                  }
+                >
+                  {o.label}
+                </OptionChip>
+              ))}
+            </div>
+          </div>
         </div>
       </section>
 
@@ -232,6 +322,30 @@ export default function DesignEditor({
             label="Linha de redes sociais"
             description="Ícones redondos para os links marcados como sociais."
           />
+          <div className="flex items-center justify-between gap-3 py-3">
+            <span className="text-[13.5px] font-medium text-[#3b4a68]">
+              Sociais acima dos botões
+            </span>
+            <div className="grid w-[180px] grid-cols-2 gap-2">
+              {[
+                { v: "acima", label: "Acima" },
+                { v: "abaixo", label: "Abaixo" },
+              ].map((o) => (
+                <OptionChip
+                  key={o.v}
+                  active={value.socialPosition === o.v}
+                  onClick={() =>
+                    set(
+                      "socialPosition",
+                      o.v as DesignState["socialPosition"],
+                    )
+                  }
+                >
+                  {o.label}
+                </OptionChip>
+              ))}
+            </div>
+          </div>
           <Switch
             checked={value.showShare}
             onChange={(v) => set("showShare", v)}

@@ -32,6 +32,8 @@ async function loadBoard(slug: string) {
           label: true,
           url: true,
           asSocial: true,
+          highlight: true,
+          color: true,
         },
       },
     },

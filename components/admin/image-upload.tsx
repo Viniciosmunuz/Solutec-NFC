@@ -23,7 +23,7 @@ export default function ImageUpload({
   onChange: (url: string | null) => void;
   label: string;
   hint?: string;
-  shape?: "circle" | "square" | "wide";
+  shape?: "circle" | "square" | "wide" | "tall";
   height?: number;
   /** enquadramento atual; sem ele o controle de zoom não aparece */
   frame?: Frame;
@@ -108,7 +108,9 @@ export default function ImageUpload({
       ? "rounded-full aspect-square"
       : shape === "square"
         ? "rounded-2xl aspect-square"
-        : "rounded-2xl w-full aspect-[16/7]";
+        : shape === "tall"
+          ? "rounded-2xl w-[150px] aspect-[9/16]"
+          : "rounded-2xl w-full aspect-[16/7]";
 
   const moldura = (
     <div

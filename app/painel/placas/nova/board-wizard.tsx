@@ -73,6 +73,11 @@ function defaultsFor(key: string): PublicCustomization {
     backgroundMode: d.backgroundMode,
     showAvatar: true,
     avatarRing: true,
+    avatarShape: "circulo",
+    spacing: "normal",
+    fontScale: 1,
+    coverOpacity: 100,
+    socialPosition: "abaixo",
     showLogo: true,
     showBio: true,
     showSocial: true,
@@ -139,6 +144,8 @@ export default function BoardWizard({
           label: l.label,
           url: buildLinkUrl(l.type, l.value) || "#",
           asSocial: l.asSocial,
+          highlight: l.highlight,
+          color: l.color,
         })),
     [links],
   );
@@ -205,6 +212,8 @@ export default function BoardWizard({
         value: l.value,
         asSocial: l.asSocial,
         active: l.active,
+        highlight: l.highlight,
+        color: l.color,
       })),
     });
     setSaving(false);

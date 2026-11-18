@@ -17,6 +17,12 @@ const linkSchema = z.object({
   value: z.string().trim().min(1, "Preencha o destino do link."),
   asSocial: z.boolean().default(false),
   active: z.boolean().default(true),
+  highlight: z.boolean().default(false),
+  color: z
+    .string()
+    .regex(/^#[0-9a-fA-F]{6}$/)
+    .nullable()
+    .optional(),
 });
 
 /** Campo de texto opcional que aceita "", null ou ausente. */
@@ -46,6 +52,11 @@ const customizationSchema = z.object({
   backgroundMode: z.enum(["solid", "gradient", "image"]),
   showAvatar: z.boolean(),
   avatarRing: z.boolean().catch(true),
+  avatarShape: z.enum(["circulo", "quadrado"]).catch("circulo"),
+  spacing: z.enum(["compacto", "normal", "arejado"]).catch("normal"),
+  fontScale: z.number().min(0.85).max(1.25).catch(1),
+  coverOpacity: z.number().min(10).max(100).catch(100),
+  socialPosition: z.enum(["acima", "abaixo"]).catch("abaixo"),
   showLogo: z.boolean(),
   showBio: z.boolean(),
   showSocial: z.boolean(),
@@ -100,6 +111,8 @@ function toLinkRows(links: z.infer<typeof linkSchema>[], boardId: string) {
       position: index,
       active: link.active,
       asSocial: link.asSocial,
+      highlight: link.highlight,
+      color: link.color ?? null,
     }))
     .filter((link) => link.url);
 }
@@ -275,6 +288,8 @@ export async function updateBoard(
         position: index,
         active: link.active,
         asSocial: link.asSocial,
+        highlight: link.highlight,
+        color: link.color ?? null,
       };
       if (link.id) {
         await tx.link.update({ where: { id: link.id }, data: payload });

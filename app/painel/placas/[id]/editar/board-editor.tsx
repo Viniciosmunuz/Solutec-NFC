@@ -27,6 +27,8 @@ type LinkRow = {
   value: string;
   asSocial: boolean;
   active: boolean;
+  highlight: boolean;
+  color: string | null;
 };
 
 export default function BoardEditor({
@@ -68,6 +70,8 @@ export default function BoardEditor({
       value: l.value,
       asSocial: l.asSocial,
       active: l.active,
+      highlight: l.highlight,
+      color: l.color,
     })),
   );
 
@@ -81,6 +85,8 @@ export default function BoardEditor({
           label: l.label,
           url: buildLinkUrl(l.type, l.value) || "#",
           asSocial: l.asSocial,
+          highlight: l.highlight,
+          color: l.color,
         })),
     [links],
   );
@@ -127,6 +133,8 @@ export default function BoardEditor({
         value: l.value,
         asSocial: l.asSocial,
         active: l.active,
+        highlight: l.highlight,
+        color: l.color,
       })),
     });
     setSaving(false);

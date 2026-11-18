@@ -28,6 +28,11 @@ type CustomizationRow = {
   backgroundMode: string;
   showAvatar: boolean;
   avatarRing: boolean;
+  avatarShape: string;
+  spacing: string;
+  fontScale: number;
+  coverOpacity: number;
+  socialPosition: string;
   showLogo: boolean;
   showBio: boolean;
   showSocial: boolean;
@@ -80,6 +85,11 @@ export function toCustomization(row: CustomizationRow): PublicCustomization {
     ),
     showAvatar: row.showAvatar,
     avatarRing: row.avatarRing,
+    avatarShape: pick(row.avatarShape, ["circulo", "quadrado"] as const, "circulo"),
+    spacing: pick(row.spacing, ["compacto", "normal", "arejado"] as const, "normal"),
+    fontScale: row.fontScale,
+    coverOpacity: row.coverOpacity,
+    socialPosition: pick(row.socialPosition, ["acima", "abaixo"] as const, "abaixo"),
     showLogo: row.showLogo,
     showBio: row.showBio,
     showSocial: row.showSocial,

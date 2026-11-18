@@ -13,7 +13,11 @@ export type TemplateLayout =
   | "banner" // logo em destaque no topo, fundo claro
   | "editorial" // tipografia serifada, assimétrico
   | "neon" // fundo escuro com brilho, botões de vidro
-  | "split"; // faixa colorida em cima, conteúdo claro embaixo
+  | "split" // faixa colorida em cima, conteúdo claro embaixo
+  | "hero" // capa ocupando metade da tela, conteúdo sobreposto
+  | "grid" // links em grade de dois
+  | "aside" // cartão deslocado, texto à esquerda
+  | "showcase"; // primeiro link vira um cartão grande com a capa
 
 /**
  * Formas decorativas do fundo. São desenhadas em SVG no renderizador
@@ -387,6 +391,183 @@ export const TEMPLATES: TemplateDefinition[] = [
       buttonStyle: "row",
       buttonRadius: "rounded",
       fontFamily: "inter",
+      backgroundMode: "gradient",
+    },
+  },
+  {
+    key: "hero-restaurante",
+    name: "Capa Gourmet",
+    description:
+      "Foto do prato ocupando metade da tela e o nome sobre ela. Para restaurante que vende pelo visual.",
+    category: "restaurantes",
+    layout: "hero",
+    featured: true,
+    order: 16,
+    defaults: {
+      accent: "#D9772B",
+      background: "#1A120C",
+      textColor: "#FFFFFF",
+      buttonStyle: "row",
+      buttonRadius: "rounded",
+      fontFamily: "playfair",
+      backgroundMode: "solid",
+    },
+  },
+  {
+    key: "hero-pessoal",
+    name: "Capa Pessoal",
+    description:
+      "Sua foto grande no topo e os contatos logo abaixo. Direto e pessoal.",
+    category: "profissionais",
+    layout: "hero",
+    featured: true,
+    order: 17,
+    defaults: {
+      accent: "#1B54B0",
+      background: "#0F1B2E",
+      textColor: "#FFFFFF",
+      buttonStyle: "row",
+      buttonRadius: "pill",
+      fontFamily: "inter",
+      backgroundMode: "solid",
+    },
+  },
+  {
+    key: "grid-servicos",
+    name: "Grade de Serviços",
+    description:
+      "Links em grade de dois, com ícone grande. Cabe muita coisa sem precisar rolar.",
+    category: "empresas",
+    layout: "grid",
+    ornament: "waves",
+    featured: true,
+    order: 18,
+    defaults: {
+      accent: "#1B54B0",
+      background: "#EDF3FD",
+      textColor: "#10233F",
+      buttonStyle: "row",
+      buttonRadius: "rounded",
+      fontFamily: "inter",
+      backgroundMode: "solid",
+    },
+  },
+  {
+    key: "grid-dark",
+    name: "Grade Escura",
+    description:
+      "A mesma grade de dois, em fundo escuro com brilho. Moderna e versátil.",
+    category: "outros",
+    layout: "grid",
+    ornament: "shards",
+    featured: false,
+    order: 19,
+    defaults: {
+      accent: "#8B5CF6",
+      background: "#13111F",
+      textColor: "#FFFFFF",
+      buttonStyle: "row",
+      buttonRadius: "rounded",
+      fontFamily: "poppins",
+      backgroundMode: "gradient",
+    },
+  },
+  {
+    key: "aside-studio",
+    name: "Studio",
+    description:
+      "Nome e foto lado a lado, links num bloco de vidro. Enxuto e autoral.",
+    category: "saloes",
+    layout: "aside",
+    ornament: "blobs",
+    featured: true,
+    order: 20,
+    defaults: {
+      accent: "#C2557F",
+      background: "#F7EDF3",
+      textColor: "#3B2230",
+      buttonStyle: "row",
+      buttonRadius: "pill",
+      fontFamily: "poppins",
+      backgroundMode: "solid",
+    },
+  },
+  {
+    key: "aside-dark",
+    name: "Studio Noturno",
+    description:
+      "O mesmo recorte à esquerda, em fundo escuro. Para quem quer sobriedade.",
+    category: "profissionais",
+    layout: "aside",
+    ornament: "streaks",
+    featured: false,
+    order: 21,
+    defaults: {
+      accent: "#D6B36A",
+      background: "#141414",
+      textColor: "#FFFFFF",
+      buttonStyle: "row",
+      buttonRadius: "square",
+      fontFamily: "playfair",
+      backgroundMode: "gradient",
+    },
+  },
+  {
+    key: "showcase-delivery",
+    name: "Vitrine Delivery",
+    description:
+      "O primeiro link vira um cartão grande com a foto. Para a ação que paga a placa.",
+    category: "restaurantes",
+    layout: "showcase",
+    featured: true,
+    order: 22,
+    defaults: {
+      accent: "#E2483D",
+      background: "#FFF6F2",
+      textColor: "#2A1512",
+      buttonStyle: "row",
+      buttonRadius: "rounded",
+      fontFamily: "poppins",
+      backgroundMode: "solid",
+    },
+  },
+  {
+    key: "showcase-loja",
+    name: "Vitrine Loja",
+    description:
+      "Cartão de destaque no topo e os demais links abaixo. Feito para converter.",
+    category: "lojas",
+    layout: "showcase",
+    ornament: "sidewave",
+    featured: true,
+    order: 23,
+    defaults: {
+      accent: "#0F9D58",
+      background: "#FFFFFF",
+      textColor: "#10233F",
+      buttonStyle: "row",
+      buttonRadius: "rounded",
+      fontFamily: "inter",
+      backgroundMode: "solid",
+    },
+  },
+  {
+    key: "showcase-auto",
+    name: "Vitrine Automotiva",
+    description:
+      "Veículo em destaque no topo, contatos em seguida. Revenda e oficina.",
+    category: "automotivo",
+    layout: "showcase",
+    ornament: "angles",
+    featured: false,
+    order: 24,
+    defaults: {
+      accent: "#E11D2E",
+      background: "#101216",
+      textColor: "#FFFFFF",
+      buttonStyle: "row",
+      buttonRadius: "rounded",
+      fontFamily: "poppins",
       backgroundMode: "gradient",
     },
   },
