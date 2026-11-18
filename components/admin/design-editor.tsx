@@ -449,15 +449,15 @@ export default function DesignEditor({
       </Secao>
       ) : null}
 
-      {layout === "perfil" ? (
+      {layout === "showroom" ? (
       <Secao
         icon={BadgeCheck}
-        titulo="Portfólio"
-        resumo="Arroba, rodapé do cartão e chamada final"
+        titulo="Concessionária"
+        resumo="Textos extras e chamada final"
       >
         <div className="flex flex-col gap-4">
           <p className="rounded-xl border border-dashed border-[#d2dae8] bg-[#fafbfd] p-3 text-[11.5px] leading-snug text-[#8a97b1]">
-            Os fatos, projetos e imagens ficam na aba <strong>Blocos</strong>.
+            Horário, modelos e fotos da loja ficam na aba <strong>Blocos</strong>.
           </p>
 
           <Input

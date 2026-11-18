@@ -270,7 +270,7 @@ export default function BoardEditor({
               tabs={[
                 { value: "design", label: "Design" },
                 { value: "links", label: "Links", count: links.length },
-                ...(getTemplate(templateKey).layout === "perfil"
+                ...(getTemplate(templateKey).layout === "showroom"
                   ? [
                       {
                         value: "blocos",
@@ -302,7 +302,7 @@ export default function BoardEditor({
             </CardBody>
           ) : null}
 
-          {tab === "blocos" && getTemplate(templateKey).layout === "perfil" ? (
+          {tab === "blocos" && getTemplate(templateKey).layout === "showroom" ? (
             <CardBody>
               <BlocksEditor
                 facts={facts}

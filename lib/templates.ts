@@ -19,7 +19,7 @@ export type TemplateLayout =
   | "aside" // cartão deslocado, texto à esquerda
   | "showcase" // primeiro link vira um cartão grande com a capa
   | "livre" // template em branco, montado pelo operador
-  | "perfil"; // portfólio: fatos, sociais com números, projetos e galeria
+  | "showroom"; // automotivo: capa cheia, modelos em grade e galeria da loja
 
 /**
  * Formas decorativas do fundo. São desenhadas em SVG no renderizador
@@ -111,6 +111,25 @@ export const categoryLabel = (value: string) =>
   TEMPLATE_CATEGORIES.find((c) => c.value === value)?.label ?? "Outros";
 
 export const TEMPLATES: TemplateDefinition[] = [
+  {
+    key: "concessionaria-pro",
+    name: "Concessionária",
+    description:
+      "Capa com o veículo ocupando a tela, ação principal em destaque, atalhos em grade, modelos e galeria da loja. Para revenda, oficina e autopeças.",
+    category: "automotivo",
+    layout: "showroom",
+    featured: true,
+    order: 1,
+    defaults: {
+      accent: "#E11D2E",
+      background: "#0C0E12",
+      textColor: "#FFFFFF",
+      buttonStyle: "row",
+      buttonRadius: "rounded",
+      fontFamily: "oswald",
+      backgroundMode: "solid",
+    },
+  },
   {
     key: "do-zero",
     name: "Do zero",
@@ -367,9 +386,9 @@ export const TEMPLATES: TemplateDefinition[] = [
   },
   {
     key: "concessionaria",
-    name: "Concessionária",
+    name: "Automotivo simples",
     description:
-      "Página escura com faixas anguladas e foto do veículo. Revenda, oficina e autopeças.",
+      "Página escura com faixas anguladas e foto do veículo. Versão enxuta, sem grade de modelos.",
     category: "automotivo",
     layout: "spotlight",
     ornament: "angles",
