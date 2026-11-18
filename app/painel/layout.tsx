@@ -8,7 +8,11 @@ export default async function PainelLayout({
   children: React.ReactNode;
 }) {
   const user = await getCurrentUser();
-  if (!user) redirect("/login");
+
+  // Cookie assinado mas sem dono — usuário apagado ou desativado depois de
+  // entrar. Mandar para /login daqui causaria loop: o middleware veria o
+  // cookie ainda válido e devolveria para cá. Quem limpa o cookie é a rota.
+  if (!user || !user.active) redirect("/api/sessao/encerrar");
 
   return (
     <AdminShell

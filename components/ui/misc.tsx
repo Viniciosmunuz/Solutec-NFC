@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Check, Copy, MoreVertical } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -57,42 +58,63 @@ export function Dropdown({
   align?: "left" | "right";
 }) {
   const [open, setOpen] = useState(false);
+  const [spot, setSpot] = useState<{ top: number; left: number } | null>(null);
   const ref = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  const MENU_WIDTH = 208; // w-52
+
+  /**
+   * Calcula onde o menu deve aparecer, em coordenadas da janela.
+   *
+   * O menu é renderizado em portal, fora da árvore do gatilho, porque dentro
+   * de uma tabela com rolagem horizontal um menu posicionado por `absolute`
+   * fica recortado pelo contêiner — e ainda faz surgir barras de rolagem.
+   * Em portal com `fixed` ele ignora qualquer `overflow` de ancestral.
+   */
+  const place = () => {
+    const el = ref.current?.firstElementChild as HTMLElement | undefined;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    const left =
+      align === "right"
+        ? Math.max(8, r.right - MENU_WIDTH)
+        : Math.min(r.left, window.innerWidth - MENU_WIDTH - 8);
+    setSpot({ top: r.bottom + 6, left });
+  };
 
   useEffect(() => {
     if (!open) return;
+
     const onDown = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+      const alvo = e.target as Node;
+      if (ref.current?.contains(alvo)) return;
+      if (menuRef.current?.contains(alvo)) return;
+      setOpen(false);
     };
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    // Rolou ou redimensionou: o menu ficaria solto do gatilho. Fecha.
+    const onMove = () => setOpen(false);
+
     document.addEventListener("mousedown", onDown);
     document.addEventListener("keydown", onKey);
+    window.addEventListener("scroll", onMove, true);
+    window.addEventListener("resize", onMove);
     return () => {
       document.removeEventListener("mousedown", onDown);
       document.removeEventListener("keydown", onKey);
+      window.removeEventListener("scroll", onMove, true);
+      window.removeEventListener("resize", onMove);
     };
   }, [open]);
 
-  return (
-    <div className="relative" ref={ref}>
-      <button
-        type="button"
-        aria-label="Mais ações"
-        aria-haspopup="menu"
-        aria-expanded={open}
-        onClick={() => setOpen((v) => !v)}
-        className="grid size-9 place-items-center rounded-lg text-[#6b7a99] transition-colors hover:bg-[#f1f4f9] hover:text-[#10233f]"
-      >
-        {trigger ?? <MoreVertical className="size-4.5" />}
-      </button>
-      {open ? (
-        <div
-          role="menu"
-          className={cn(
-            "absolute z-50 mt-1.5 w-52 overflow-hidden rounded-xl border border-line bg-white p-1.5 shadow-pop animate-fade",
-            align === "right" ? "right-0" : "left-0",
-          )}
-        >
+  const menu = (
+    <div
+      ref={menuRef}
+      role="menu"
+      style={{ top: spot?.top ?? 0, left: spot?.left ?? 0, width: MENU_WIDTH }}
+      className="fixed z-50 overflow-hidden rounded-xl border border-line bg-white p-1.5 shadow-pop animate-fade"
+    >
           {items.map((item, i) => {
             const Icon = item.icon;
             const content = (
@@ -132,8 +154,25 @@ export function Dropdown({
               </div>
             );
           })}
-        </div>
-      ) : null}
+    </div>
+  );
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        type="button"
+        aria-label="Mais ações"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        onClick={() => {
+          if (!open) place();
+          setOpen((v) => !v);
+        }}
+        className="grid size-9 place-items-center rounded-lg text-[#6b7a99] transition-colors hover:bg-[#f1f4f9] hover:text-[#10233f]"
+      >
+        {trigger ?? <MoreVertical className="size-4.5" />}
+      </button>
+      {open && spot ? createPortal(menu, document.body) : null}
     </div>
   );
 }
