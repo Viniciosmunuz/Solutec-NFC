@@ -180,6 +180,14 @@ export function Switch({
   description?: string;
   disabled?: boolean;
 }) {
+  // Trilho 44x24, bolinha 20, folga 2 de cada lado: ligada ela anda 22px.
+  // Os números ficam aqui, e não em classe utilitária, porque a posição da
+  // bolinha é o que diz se a chave está ligada — não pode depender de uma
+  // classe fracionária que o gerador de CSS talvez não produza.
+  const TRILHO = { largura: 44, altura: 24 };
+  const BOLA = 20;
+  const FOLGA = 2;
+
   const button = (
     <button
       type="button"
@@ -188,16 +196,23 @@ export function Switch({
       aria-label={label}
       disabled={disabled}
       onClick={() => onChange(!checked)}
+      style={{ width: TRILHO.largura, height: TRILHO.altura }}
       className={cn(
-        "relative h-6 w-11 shrink-0 rounded-full transition-colors duration-200 outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 focus-visible:ring-offset-2 disabled:opacity-50",
+        "relative shrink-0 rounded-full transition-colors duration-200 outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 focus-visible:ring-offset-2 disabled:opacity-50",
         checked ? "bg-brand-600" : "bg-[#d2dae8]",
       )}
     >
       <span
-        className={cn(
-          "absolute top-0.5 size-5 rounded-full bg-white shadow-sm transition-transform duration-200",
-          checked ? "translate-x-5.5" : "translate-x-0.5",
-        )}
+        className="absolute rounded-full bg-white shadow-sm transition-transform duration-200"
+        style={{
+          width: BOLA,
+          height: BOLA,
+          top: FOLGA,
+          left: FOLGA,
+          transform: checked
+            ? `translateX(${TRILHO.largura - BOLA - FOLGA * 2}px)`
+            : "translateX(0)",
+        }}
       />
     </button>
   );

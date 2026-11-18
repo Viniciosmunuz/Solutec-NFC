@@ -7,6 +7,7 @@ import PublicPage from "@/components/public/PublicPage";
 import { SolutecLogo } from "@/components/brand/logo";
 import { db } from "@/lib/db";
 import { toCustomization } from "@/lib/customization";
+import { ehAcessoDeRobo } from "@/lib/robots";
 import { getTemplate } from "@/lib/templates";
 import { shadeColor } from "@/lib/utils";
 import { publicUrl } from "@/lib/urls";
@@ -102,7 +103,12 @@ export default async function PublicBoardPage({ params, searchParams }: Params &
   const referer = headerList.get("referer");
   const boardId = board.id;
 
+  // Robô, monitor e verificação por linha de comando não entram na conta:
+  // o número do painel precisa significar "pessoas que encostaram o celular".
+  const contar = !ehAcessoDeRobo(ua);
+
   after(async () => {
+    if (!contar) return;
     try {
       await db.visit.create({
         data: { boardId, source, device, referer: referer ?? null },
