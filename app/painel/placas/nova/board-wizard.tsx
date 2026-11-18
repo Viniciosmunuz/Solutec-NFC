@@ -373,6 +373,7 @@ export default function BoardWizard({
             />
             <CardBody>
               <DesignEditor
+                layout={getTemplate(templateKey).layout}
                 value={design}
                 onChange={(patch) => setDesign((d) => ({ ...d, ...patch }))}
               />

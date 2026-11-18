@@ -270,11 +270,16 @@ export default function BoardEditor({
               tabs={[
                 { value: "design", label: "Design" },
                 { value: "links", label: "Links", count: links.length },
-                {
-                  value: "blocos",
-                  label: "Blocos",
-                  count: facts.length + projects.length + gallery.length,
-                },
+                ...(getTemplate(templateKey).layout === "perfil"
+                  ? [
+                      {
+                        value: "blocos",
+                        label: "Blocos",
+                        count:
+                          facts.length + projects.length + gallery.length,
+                      },
+                    ]
+                  : []),
                 { value: "template", label: "Template" },
                 { value: "config", label: "Configurações" },
               ]}
@@ -284,6 +289,7 @@ export default function BoardEditor({
           {tab === "design" ? (
             <CardBody>
               <DesignEditor
+                layout={getTemplate(templateKey).layout}
                 value={design}
                 onChange={(patch) => setDesign((d) => ({ ...d, ...patch }))}
               />
@@ -296,7 +302,7 @@ export default function BoardEditor({
             </CardBody>
           ) : null}
 
-          {tab === "blocos" ? (
+          {tab === "blocos" && getTemplate(templateKey).layout === "perfil" ? (
             <CardBody>
               <BlocksEditor
                 facts={facts}

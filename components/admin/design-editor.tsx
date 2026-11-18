@@ -44,12 +44,22 @@ export type DesignState = PublicCustomization;
  *
  * Só a primeira nasce aberta: é a única que todo mundo preenche sempre.
  */
+/**
+ * Qual layout a placa está usando agora.
+ *
+ * Controle que não faz nada na página que a pessoa está vendo é pior do que
+ * controle que não existe: ela mexe, nada muda, e passa a desconfiar do
+ * resto do painel. Então as seções presas a um template só aparecem quando
+ * aquele template está em uso.
+ */
 export default function DesignEditor({
   value,
   onChange,
+  layout,
 }: {
   value: DesignState;
   onChange: (patch: Partial<DesignState>) => void;
+  layout?: string;
 }) {
   const set = <K extends keyof DesignState>(key: K, v: DesignState[K]) =>
     onChange({ [key]: v } as Partial<DesignState>);
@@ -367,17 +377,13 @@ export default function DesignEditor({
         </div>
       </Secao>
 
+      {layout === "livre" ? (
       <Secao
         icon={SlidersHorizontal}
         titulo="Layout"
         resumo="Posição do conteúdo na tela"
       >
         <div className="flex flex-col gap-5">
-          <p className="rounded-xl border border-dashed border-[#d2dae8] bg-[#fafbfd] p-3 text-[11.5px] leading-snug text-[#8a97b1]">
-            Estes três valem no template <strong>Do zero</strong>, a tela em
-            branco. Nos outros, a estrutura é do próprio modelo.
-          </p>
-
           <Campo titulo="Alinhamento">
             <div className="grid grid-cols-2 gap-2">
               {[
@@ -441,7 +447,9 @@ export default function DesignEditor({
           </Campo>
         </div>
       </Secao>
+      ) : null}
 
+      {layout === "perfil" ? (
       <Secao
         icon={BadgeCheck}
         titulo="Portfólio"
@@ -449,8 +457,7 @@ export default function DesignEditor({
       >
         <div className="flex flex-col gap-4">
           <p className="rounded-xl border border-dashed border-[#d2dae8] bg-[#fafbfd] p-3 text-[11.5px] leading-snug text-[#8a97b1]">
-            Estes campos aparecem no template <strong>Portfólio</strong>. Os
-            fatos, projetos e imagens ficam na aba <strong>Blocos</strong>.
+            Os fatos, projetos e imagens ficam na aba <strong>Blocos</strong>.
           </p>
 
           <Input
@@ -506,6 +513,7 @@ export default function DesignEditor({
           </div>
         </div>
       </Secao>
+      ) : null}
 
       <Secao
         icon={SlidersHorizontal}
