@@ -89,6 +89,12 @@ function demoData(template: TemplateDefinition): {
       avatarUrl: null,
       logoUrl: null,
       coverUrl: null,
+      avatarZoom: 1,
+      avatarX: 50,
+      avatarY: 50,
+      coverZoom: 1,
+      coverX: 50,
+      coverY: 50,
       accent: d.accent,
       background: d.background,
       textColor: d.textColor,
@@ -130,7 +136,7 @@ export function TemplateThumb({ template }: { template: TemplateDefinition }) {
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden">
       <div
-        className="origin-top-left"
+        className="flex origin-top-left flex-col"
         style={{ width: 390, height: 780, transform: "scale(0.56)" }}
       >
         <PublicPage

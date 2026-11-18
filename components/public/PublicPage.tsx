@@ -21,6 +21,14 @@ export type PublicCustomization = {
   avatarUrl: string | null;
   logoUrl: string | null;
   coverUrl: string | null;
+  /** zoom aplicado à foto (1 = ajustada ao recorte) */
+  avatarZoom: number;
+  /** ponto da foto que fica no centro do recorte, em % */
+  avatarX: number;
+  avatarY: number;
+  coverZoom: number;
+  coverX: number;
+  coverY: number;
   accent: string;
   background: string;
   textColor: string;
@@ -69,6 +77,28 @@ type Ctx = {
 // Blocos (definidos no módulo, nunca dentro do render)
 // ---------------------------------------------------------------------------
 
+/**
+ * Enquadramento de uma foto dentro do recorte.
+ *
+ * `object-position` escolhe que ponto da imagem fica visível e `scale`
+ * aproxima. A ordem importa: com `object-fit: cover` o navegador primeiro
+ * ajusta a imagem ao recorte e só depois aplica a escala, que é exatamente
+ * o comportamento que o operador espera ao arrastar e dar zoom.
+ *
+ * Valores padrão (zoom 1, 50/50) não produzem estilo nenhum — fotos antigas
+ * continuam renderizando como antes.
+ */
+function frame(zoom = 1, x = 50, y = 50): React.CSSProperties {
+  const z = Number.isFinite(zoom) ? Math.min(3, Math.max(1, zoom)) : 1;
+  const px = Number.isFinite(x) ? Math.min(100, Math.max(0, x)) : 50;
+  const py = Number.isFinite(y) ? Math.min(100, Math.max(0, y)) : 50;
+  return {
+    objectPosition: `${px}% ${py}%`,
+    transform: z === 1 ? undefined : `scale(${z})`,
+    transformOrigin: `${px}% ${py}%`,
+  };
+}
+
 function Avatar({
   ctx,
   size = 112,
@@ -99,6 +129,7 @@ function Avatar({
           src={custom.avatarUrl}
           alt={custom.displayName}
           className="size-full object-cover"
+          style={frame(custom.avatarZoom, custom.avatarX, custom.avatarY)}
         />
       ) : (
         <div
@@ -596,17 +627,27 @@ function Shell({
   ornament,
   accent,
   onDark,
+  cover,
 }: {
   children: React.ReactNode;
   style?: React.CSSProperties;
   ornament?: OrnamentKey;
   accent: string;
   onDark: boolean;
+  /** foto de fundo, quando o template usa o modo imagem */
+  cover?: React.ReactNode;
 }) {
   return (
-    <div className="relative min-h-full w-full overflow-hidden" style={style}>
+    // `grow` é o que faz o fundo chegar até o fim da tela quando a página tem
+    // pouco conteúdo — sem ele a cor para onde o conteúdo acaba e sobra uma
+    // faixa branca embaixo. Os contêineres de fora são flex-col por isso.
+    <div
+      className="relative flex min-h-full w-full grow flex-col overflow-hidden"
+      style={style}
+    >
+      {cover}
       <Ornament name={ornament} accent={accent} onDark={onDark} />
-      <div className="relative mx-auto w-full max-w-[460px] px-5">
+      <div className="relative mx-auto w-full max-w-[460px] grow px-5">
         {children}
       </div>
     </div>
@@ -680,18 +721,35 @@ export default function PublicPage({
   const font = fontStack(custom.fontFamily);
   const bg = custom.background;
 
+  // No modo imagem a capa deixou de ser `background-image` e virou uma <img>
+  // de verdade: só assim o zoom e a posição escolhidos no painel valem,
+  // porque `background-size: cover` não combina com escala.
+  const fundoComFoto = custom.backgroundMode === "image" && !!custom.coverUrl;
+
   const backgroundStyle: React.CSSProperties =
     custom.backgroundMode === "gradient"
       ? {
           backgroundImage: `linear-gradient(165deg, ${shadeColor(bg, 0.12)} 0%, ${bg} 45%, ${shadeColor(bg, -0.25)} 100%)`,
         }
-      : custom.backgroundMode === "image" && custom.coverUrl
-        ? {
-            backgroundImage: `linear-gradient(180deg, ${hexToRgba(bg, 0.55)}, ${hexToRgba(bg, 0.95)}), url(${custom.coverUrl})`,
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-          }
-        : { backgroundColor: bg };
+      : { backgroundColor: bg };
+
+  const coverLayer = fundoComFoto ? (
+    <>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={custom.coverUrl!}
+        alt=""
+        className="pointer-events-none absolute inset-0 size-full object-cover"
+        style={frame(custom.coverZoom, custom.coverX, custom.coverY)}
+      />
+      <div
+        className="pointer-events-none absolute inset-0"
+        style={{
+          backgroundImage: `linear-gradient(180deg, ${hexToRgba(bg, 0.55)}, ${hexToRgba(bg, 0.95)})`,
+        }}
+      />
+    </>
+  ) : null;
 
   const shellStyle = { ...backgroundStyle, fontFamily: font };
 
@@ -707,7 +765,7 @@ export default function PublicPage({
   // ---- spotlight / neon ----
   if (layout === "spotlight" || layout === "neon") {
     return (
-      <Shell style={shellStyle} ornament={ornament} accent={custom.accent} onDark={darkLayout}>
+      <Shell style={shellStyle} ornament={ornament} accent={custom.accent} onDark={darkLayout} cover={coverLayer}>
         <div className="relative flex flex-col items-center pt-14">
           {layout === "neon" ? (
             <div
@@ -739,7 +797,7 @@ export default function PublicPage({
   // ---- card ----
   if (layout === "card") {
     return (
-      <Shell style={shellStyle} ornament={ornament} accent={custom.accent} onDark={darkLayout}>
+      <Shell style={shellStyle} ornament={ornament} accent={custom.accent} onDark={darkLayout} cover={coverLayer}>
         <div className="flex min-h-screen flex-col justify-center py-10">
           <div
             className="w-full overflow-hidden rounded-[26px] bg-white px-6 pb-7 pt-8 shadow-float"
@@ -761,17 +819,28 @@ export default function PublicPage({
   // ---- cover ----
   if (layout === "cover") {
     return (
-      <Shell style={shellStyle} ornament={ornament} accent={custom.accent} onDark={darkLayout}>
+      <Shell style={shellStyle} ornament={ornament} accent={custom.accent} onDark={darkLayout} cover={coverLayer}>
         <div className="pb-2">
           <div className="-mx-5">
             <div
-              className="relative h-44 w-full bg-cover bg-center"
-              style={{
-                backgroundImage: custom.coverUrl
-                  ? `url(${custom.coverUrl})`
-                  : `linear-gradient(135deg, ${custom.accent}, ${shadeColor(custom.accent, -0.4)})`,
-              }}
+              className="relative h-44 w-full overflow-hidden"
+              style={
+                custom.coverUrl
+                  ? undefined
+                  : {
+                      backgroundImage: `linear-gradient(135deg, ${custom.accent}, ${shadeColor(custom.accent, -0.4)})`,
+                    }
+              }
             >
+              {custom.coverUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={custom.coverUrl}
+                  alt=""
+                  className="absolute inset-0 size-full object-cover"
+                  style={frame(custom.coverZoom, custom.coverX, custom.coverY)}
+                />
+              ) : null}
               <div className="absolute inset-0 bg-gradient-to-t from-black/45 to-transparent" />
               {custom.showLogo && custom.logoUrl ? (
                 <div className="absolute left-5 top-5">
@@ -796,7 +865,7 @@ export default function PublicPage({
   // ---- editorial ----
   if (layout === "editorial") {
     return (
-      <Shell style={shellStyle} ornament={ornament} accent={custom.accent} onDark={darkLayout}>
+      <Shell style={shellStyle} ornament={ornament} accent={custom.accent} onDark={darkLayout} cover={coverLayer}>
         <div className="pt-12">
           <div className="flex items-end gap-4">
             <Avatar
@@ -831,7 +900,7 @@ export default function PublicPage({
   if (layout === "split") {
     return (
       <div
-        className="relative min-h-full w-full overflow-hidden bg-[#f6f8fc]"
+        className="relative flex min-h-full w-full grow flex-col overflow-hidden bg-[#f6f8fc]"
         style={{ fontFamily: font }}
       >
         <Ornament name={ornament} accent={custom.accent} onDark={false} />
@@ -857,7 +926,7 @@ export default function PublicPage({
 
   // ---- banner (padrão) ----
   return (
-    <Shell style={shellStyle} ornament={ornament} accent={custom.accent} onDark={darkLayout}>
+    <Shell style={shellStyle} ornament={ornament} accent={custom.accent} onDark={darkLayout} cover={coverLayer}>
       <div className="pt-14">
         <div className="flex flex-col items-center gap-5">
           {custom.showLogo && custom.logoUrl ? (

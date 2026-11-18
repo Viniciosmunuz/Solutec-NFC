@@ -109,7 +109,7 @@ export default async function PublicBoardPage({ params, searchParams }: Params &
   });
 
   return (
-    <div className="min-h-screen">
+    <div className="flex min-h-dvh flex-col">
       <PublicPage
         templateKey={board.template.key}
         custom={toCustomization(board.customization)}

@@ -32,7 +32,7 @@ export default function PhonePreview({
             <div className="pointer-events-none absolute left-1/2 top-2 z-30 h-6 w-[88px] -translate-x-1/2 rounded-full bg-[#0e2143]" />
 
             <div className="no-scrollbar h-full overflow-y-auto">
-              <div className="min-h-full pt-11">{children}</div>
+              <div className="flex min-h-full flex-col pt-11">{children}</div>
             </div>
           </div>
         </div>

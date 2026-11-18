@@ -13,6 +13,12 @@ type CustomizationRow = {
   avatarUrl: string | null;
   logoUrl: string | null;
   coverUrl: string | null;
+  avatarZoom: number;
+  avatarX: number;
+  avatarY: number;
+  coverZoom: number;
+  coverX: number;
+  coverY: number;
   accent: string;
   background: string;
   textColor: string;
@@ -42,6 +48,12 @@ export function toCustomization(row: CustomizationRow): PublicCustomization {
     avatarUrl: row.avatarUrl,
     logoUrl: row.logoUrl,
     coverUrl: row.coverUrl,
+    avatarZoom: row.avatarZoom,
+    avatarX: row.avatarX,
+    avatarY: row.avatarY,
+    coverZoom: row.coverZoom,
+    coverX: row.coverX,
+    coverY: row.coverY,
     accent: row.accent,
     background: row.background,
     textColor: row.textColor,

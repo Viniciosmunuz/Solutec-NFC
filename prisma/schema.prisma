@@ -117,6 +117,15 @@ model Customization {
   logoUrl     String?
   coverUrl    String?
 
+  /// Enquadramento das fotos: zoom (1 = ajustado) e o ponto da imagem que
+  /// fica no centro do recorte, em porcentagem (50/50 = centro).
+  avatarZoom  Float   @default(1)
+  avatarX     Float   @default(50)
+  avatarY     Float   @default(50)
+  coverZoom   Float   @default(1)
+  coverX      Float   @default(50)
+  coverY      Float   @default(50)
+
   accent        String  @default("#1B54B0")
   background    String  @default("#0E2143")
   textColor     String  @default("#0E2143")

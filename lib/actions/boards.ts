@@ -29,6 +29,14 @@ const customizationSchema = z.object({
   avatarUrl: optionalText,
   logoUrl: optionalText,
   coverUrl: optionalText,
+  // Enquadramento das fotos. Vem do painel, mas chega como número cru pela
+  // server action — limitado aqui para nunca gravar algo absurdo.
+  avatarZoom: z.number().min(1).max(3).catch(1),
+  avatarX: z.number().min(0).max(100).catch(50),
+  avatarY: z.number().min(0).max(100).catch(50),
+  coverZoom: z.number().min(1).max(3).catch(1),
+  coverX: z.number().min(0).max(100).catch(50),
+  coverY: z.number().min(0).max(100).catch(50),
   accent: z.string().regex(/^#[0-9a-fA-F]{6}$/, "Cor inválida."),
   background: z.string().regex(/^#[0-9a-fA-F]{6}$/, "Cor inválida."),
   textColor: z.string().regex(/^#[0-9a-fA-F]{6}$/, "Cor inválida."),

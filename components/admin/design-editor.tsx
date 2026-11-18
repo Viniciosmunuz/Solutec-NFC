@@ -38,6 +38,14 @@ export default function DesignEditor({
               onChange={(url) => set("avatarUrl", url)}
               hint="Quadrada, a partir de 400×400."
               height={96}
+              frame={{
+                zoom: value.avatarZoom,
+                x: value.avatarX,
+                y: value.avatarY,
+              }}
+              onFrame={(f) =>
+                onChange({ avatarZoom: f.zoom, avatarX: f.x, avatarY: f.y })
+              }
             />
             <ImageUpload
               label="Logotipo"
@@ -55,6 +63,10 @@ export default function DesignEditor({
             onChange={(url) => set("coverUrl", url)}
             shape="wide"
             hint="Usada nos templates com capa e no fundo em modo imagem."
+            frame={{ zoom: value.coverZoom, x: value.coverX, y: value.coverY }}
+            onFrame={(f) =>
+              onChange({ coverZoom: f.zoom, coverX: f.x, coverY: f.y })
+            }
           />
 
           <Input
