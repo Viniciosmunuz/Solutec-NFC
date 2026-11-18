@@ -44,50 +44,50 @@ export default async function TemplatesPage() {
         }
       />
 
-      <div className="mb-4 grid gap-4 sm:grid-cols-3">
+      <div className="mb-4 grid grid-cols-3 gap-2.5 sm:gap-4">
         <Card>
-          <CardBody className="flex items-center gap-3.5">
-            <span className="grid size-11 place-items-center rounded-xl bg-brand-50 text-brand-600">
+          <CardBody className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:gap-3.5">
+            <span className="grid size-9 shrink-0 place-items-center rounded-xl sm:size-11 bg-brand-50 text-brand-600">
               <LayoutTemplate className="size-5" />
             </span>
             <div>
-              <p className="text-[22px] font-bold leading-none text-[#10233f]">
+              <p className="text-[19px] font-bold leading-none text-[#10233f] sm:text-[22px]">
                 {TEMPLATES.length}
               </p>
-              <p className="mt-1 text-[12.5px] text-[#6b7a99]">
+              <p className="mt-1 text-[11px] leading-snug text-[#6b7a99] sm:text-[12.5px]">
                 modelos disponíveis
               </p>
             </div>
           </CardBody>
         </Card>
         <Card>
-          <CardBody className="flex items-center gap-3.5">
-            <span className="grid size-11 place-items-center rounded-xl bg-[#efeafd] text-[#6b4fd8]">
+          <CardBody className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:gap-3.5">
+            <span className="grid size-9 shrink-0 place-items-center rounded-xl sm:size-11 bg-[#efeafd] text-[#6b4fd8]">
               <Sparkles className="size-5" />
             </span>
             <div>
-              <p className="text-[22px] font-bold leading-none text-[#10233f]">
+              <p className="text-[19px] font-bold leading-none text-[#10233f] sm:text-[22px]">
                 {
                   TEMPLATE_CATEGORIES.filter((c) => categoriesUsed.has(c.value))
                     .length
                 }
               </p>
-              <p className="mt-1 text-[12.5px] text-[#6b7a99]">
+              <p className="mt-1 text-[11px] leading-snug text-[#6b7a99] sm:text-[12.5px]">
                 segmentos cobertos
               </p>
             </div>
           </CardBody>
         </Card>
         <Card>
-          <CardBody className="flex items-center gap-3.5">
-            <span className="grid size-11 place-items-center rounded-xl bg-success-soft text-success">
+          <CardBody className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:gap-3.5">
+            <span className="grid size-9 shrink-0 place-items-center rounded-xl sm:size-11 bg-success-soft text-success">
               <LayoutTemplate className="size-5" />
             </span>
             <div>
-              <p className="text-[22px] font-bold leading-none text-[#10233f]">
+              <p className="text-[19px] font-bold leading-none text-[#10233f] sm:text-[22px]">
                 {Object.values(usageByKey).reduce((s, n) => s + n, 0)}
               </p>
-              <p className="mt-1 text-[12.5px] text-[#6b7a99]">
+              <p className="mt-1 text-[11px] leading-snug text-[#6b7a99] sm:text-[12.5px]">
                 placas usando templates
               </p>
             </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { Check, Eye, Search } from "lucide-react";
 import PublicPage, {
@@ -132,48 +132,92 @@ function demoData(template: TemplateDefinition): {
   };
 }
 
+/** Largura de projeto da página; a moldura encolhe tudo a partir daqui. */
+const LARGURA_BASE = 390;
+const ALTURA_BASE = 824;
+
 /**
- * Miniatura do template.
+ * Miniatura do template, dentro de uma moldura de celular.
  *
  * Por baixo fica sempre a página de verdade, renderizada em escala — é o que
- * garante que a vitrine nunca fica desatualizada em relação ao template.
+ * garante que a vitrine nunca fica desatualizada em relação ao template. A
+ * moldura existe porque miniatura quadrada não diz como aquilo vai parecer na
+ * mão do cliente, que é a única coisa que importa na hora de escolher.
+ *
+ * A escala é medida, não chutada: a página é desenhada em 390px e encolhida
+ * pela largura real da tela do aparelho. Tentei resolver por unidade de
+ * contêiner, mas `scale()` exige número puro e `calc(100cqw / 390)` devolve
+ * comprimento — a regra era descartada em silêncio.
  *
  * Por cima entra a arte do template (`public/templates/<key>.png`) quando ele
- * está marcado com `art: true` em lib/templates.ts. A arte cobre a miniatura
- * viva só depois de carregar, então não existe piscada nem buraco branco.
+ * está marcado com `art: true` em lib/templates.ts.
  */
 export function TemplateThumb({ template }: { template: TemplateDefinition }) {
   const { custom, links } = useMemo(() => demoData(template), [template]);
   const [artReady, setArtReady] = useState(false);
+  const [escala, setEscala] = useState(0);
+  const telaRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const tela = telaRef.current;
+    if (!tela) return;
+    const medir = () => setEscala(tela.clientWidth / LARGURA_BASE);
+    medir();
+    const observador = new ResizeObserver(medir);
+    observador.observe(tela);
+    return () => observador.disconnect();
+  }, []);
 
   return (
-    <div className="pointer-events-none absolute inset-0 overflow-hidden">
+    <div className="pointer-events-none absolute inset-0 grid place-items-center p-2.5">
+      {/* corpo do aparelho */}
       <div
-        className="flex origin-top-left flex-col"
-        style={{ width: 390, height: 780, transform: "scale(0.56)" }}
+        className="relative h-full overflow-hidden rounded-[16%/7.5%] bg-[#0e2143] p-[2.5%] shadow-float ring-1 ring-black/10"
+        style={{ aspectRatio: `${LARGURA_BASE} / ${ALTURA_BASE}` }}
       >
-        <PublicPage
-          templateKey={template.key}
-          custom={custom}
-          links={links}
-          preview
-        />
-      </div>
+        <div
+          ref={telaRef}
+          className="relative h-full w-full overflow-hidden bg-white"
+          style={{ borderRadius: "13%/6.2%" }}
+        >
+          {/* entalhe */}
+          <div className="absolute left-1/2 top-[1.6%] z-20 h-[1.5%] w-[26%] -translate-x-1/2 rounded-full bg-[#0e2143]" />
 
-      {template.art ? (
-        <Image
-          src={`/templates/${template.key}.png`}
-          alt=""
-          fill
-          sizes="(max-width: 768px) 50vw, 25vw"
-          className={cn(
-            "object-cover transition-opacity duration-200",
-            artReady ? "opacity-100" : "opacity-0",
-          )}
-          onLoad={() => setArtReady(true)}
-          onError={() => setArtReady(false)}
-        />
-      ) : null}
+          <div
+            className="flex origin-top-left flex-col"
+            style={{
+              width: LARGURA_BASE,
+              height: ALTURA_BASE,
+              transform: `scale(${escala})`,
+              // Enquanto não mediu, fica invisível: meio quadro com a página
+              // em tamanho real seria um susto.
+              opacity: escala ? 1 : 0,
+            }}
+          >
+            <PublicPage
+              templateKey={template.key}
+              custom={custom}
+              links={links}
+              preview
+            />
+          </div>
+
+          {template.art ? (
+            <Image
+              src={`/templates/${template.key}.png`}
+              alt=""
+              fill
+              sizes="(max-width: 768px) 50vw, 25vw"
+              className={cn(
+                "object-cover transition-opacity duration-200",
+                artReady ? "opacity-100" : "opacity-0",
+              )}
+              onLoad={() => setArtReady(true)}
+              onError={() => setArtReady(false)}
+            />
+          ) : null}
+        </div>
+      </div>
     </div>
   );
 }
@@ -260,7 +304,7 @@ export default function TemplateGallery({
       ) : (
         <div
           className={cn(
-            "grid gap-4 sm:grid-cols-2 lg:grid-cols-3",
+            "grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3",
             columns === 4 && "xl:grid-cols-4",
           )}
         >
@@ -279,7 +323,7 @@ export default function TemplateGallery({
                 <button
                   type="button"
                   onClick={() => onSelect?.(template.key)}
-                  className="relative block aspect-[3/4] w-full overflow-hidden bg-[#f6f8fc]"
+                  className="relative block aspect-[0.66] w-full overflow-hidden bg-[#eef2f8]"
                 >
                   <TemplateThumb template={template} />
                   {active ? (
