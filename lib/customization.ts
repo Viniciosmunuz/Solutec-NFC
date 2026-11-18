@@ -33,12 +33,31 @@ type CustomizationRow = {
   fontScale: number;
   coverOpacity: number;
   socialPosition: string;
+  ornament: string | null;
+  ornamentColor: string | null;
+  ornamentOpacity: number;
+  contentAlign: string;
+  contentPosition: string;
+  cardStyle: string;
+  avatarSize: number;
   showLogo: boolean;
   showBio: boolean;
   showSocial: boolean;
   showShare: boolean;
   showContactCard: boolean;
 };
+
+export const ORNAMENTOS = [
+  "nenhum",
+  "waves",
+  "shards",
+  "leaves",
+  "blobs",
+  "streaks",
+  "diagonal",
+  "sidewave",
+  "angles",
+] as const;
 
 const pick = <T extends string>(
   value: string,
@@ -90,6 +109,23 @@ export function toCustomization(row: CustomizationRow): PublicCustomization {
     fontScale: row.fontScale,
     coverOpacity: row.coverOpacity,
     socialPosition: pick(row.socialPosition, ["acima", "abaixo"] as const, "abaixo"),
+    ornament: row.ornament
+      ? pick(
+          row.ornament,
+          ORNAMENTOS,
+          "nenhum",
+        )
+      : null,
+    ornamentColor: row.ornamentColor,
+    ornamentOpacity: row.ornamentOpacity,
+    contentAlign: pick(row.contentAlign, ["esquerda", "centro"] as const, "centro"),
+    contentPosition: pick(
+      row.contentPosition,
+      ["topo", "centro", "rodape"] as const,
+      "topo",
+    ),
+    cardStyle: pick(row.cardStyle, ["nenhum", "vidro", "solido"] as const, "nenhum"),
+    avatarSize: row.avatarSize,
     showLogo: row.showLogo,
     showBio: row.showBio,
     showSocial: row.showSocial,

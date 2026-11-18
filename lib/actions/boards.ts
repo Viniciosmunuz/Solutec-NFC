@@ -57,6 +57,30 @@ const customizationSchema = z.object({
   fontScale: z.number().min(0.85).max(1.25).catch(1),
   coverOpacity: z.number().min(10).max(100).catch(100),
   socialPosition: z.enum(["acima", "abaixo"]).catch("abaixo"),
+  ornament: z
+    .enum([
+      "nenhum",
+      "waves",
+      "shards",
+      "leaves",
+      "blobs",
+      "streaks",
+      "diagonal",
+      "sidewave",
+      "angles",
+    ])
+    .nullable()
+    .optional(),
+  ornamentColor: z
+    .string()
+    .regex(/^#[0-9a-fA-F]{6}$/)
+    .nullable()
+    .optional(),
+  ornamentOpacity: z.number().min(5).max(100).catch(100),
+  contentAlign: z.enum(["esquerda", "centro"]).catch("centro"),
+  contentPosition: z.enum(["topo", "centro", "rodape"]).catch("topo"),
+  cardStyle: z.enum(["nenhum", "vidro", "solido"]).catch("nenhum"),
+  avatarSize: z.number().min(0.6).max(1.6).catch(1),
   showLogo: z.boolean(),
   showBio: z.boolean(),
   showSocial: z.boolean(),

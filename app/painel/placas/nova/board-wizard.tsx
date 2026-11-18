@@ -78,6 +78,13 @@ function defaultsFor(key: string): PublicCustomization {
     fontScale: 1,
     coverOpacity: 100,
     socialPosition: "abaixo",
+    ornament: null,
+    ornamentColor: null,
+    ornamentOpacity: 100,
+    contentAlign: "centro",
+    contentPosition: "topo",
+    cardStyle: "nenhum",
+    avatarSize: 1,
     showLogo: true,
     showBio: true,
     showSocial: true,
@@ -352,7 +359,7 @@ export default function BoardWizard({
       {/* ---------------- Etapa 3: design ---------------- */}
       {step === 2 ? (
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">
-          <Card>
+          <Card className="min-w-0">
             <CardHeader
               title="Personalize o design"
               description={`Template: ${template.name} · ${categoryLabel(template.category)}`}
@@ -364,14 +371,14 @@ export default function BoardWizard({
               />
             </CardBody>
           </Card>
-          <div className="lg:sticky lg:top-6 lg:self-start">{preview}</div>
+          <div className="min-w-0 lg:sticky lg:top-6 lg:self-start">{preview}</div>
         </div>
       ) : null}
 
       {/* ---------------- Etapa 4: links ---------------- */}
       {step === 3 ? (
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">
-          <Card>
+          <Card className="min-w-0">
             <CardHeader
               title="Adicione os links"
               description="Arraste pela alça à esquerda para mudar a ordem dos botões."
@@ -380,7 +387,7 @@ export default function BoardWizard({
               <LinksEditor links={links} onChange={setLinks} />
             </CardBody>
           </Card>
-          <div className="lg:sticky lg:top-6 lg:self-start">{preview}</div>
+          <div className="min-w-0 lg:sticky lg:top-6 lg:self-start">{preview}</div>
         </div>
       ) : null}
 
@@ -471,7 +478,7 @@ export default function BoardWizard({
               </CardBody>
             </Card>
           </div>
-          <div className="lg:sticky lg:top-6 lg:self-start">{preview}</div>
+          <div className="min-w-0 lg:sticky lg:top-6 lg:self-start">{preview}</div>
         </div>
       ) : null}
 

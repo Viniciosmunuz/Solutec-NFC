@@ -1,6 +1,12 @@
 "use client";
 
-import { Palette, SlidersHorizontal, Type, UserRound } from "lucide-react";
+import {
+  Palette,
+  Shapes,
+  SlidersHorizontal,
+  Type,
+  UserRound,
+} from "lucide-react";
 import ColorPicker from "@/components/admin/color-picker";
 import ImageUpload from "@/components/admin/image-upload";
 import { Input, Select, Switch, Textarea } from "@/components/ui/field";
@@ -12,6 +18,19 @@ import {
 } from "@/lib/templates";
 import type { PublicCustomization } from "@/components/public/PublicPage";
 import { cn } from "@/lib/utils";
+
+/** Formas disponíveis, com nome em português para quem edita. */
+const FORMAS = [
+  { v: "nenhum", label: "Nenhuma" },
+  { v: "waves", label: "Ondas" },
+  { v: "shards", label: "Lascas" },
+  { v: "leaves", label: "Folhas" },
+  { v: "blobs", label: "Manchas" },
+  { v: "streaks", label: "Riscos" },
+  { v: "diagonal", label: "Fita" },
+  { v: "sidewave", label: "Onda lateral" },
+  { v: "angles", label: "Ângulos" },
+] as const;
 
 export type DesignState = PublicCustomization;
 
@@ -286,6 +305,160 @@ export default function DesignEditor({
                   {o.label}
                 </OptionChip>
               ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Composição */}
+      <section>
+        <Block icon={Shapes} title="Composição" />
+        <div className="flex flex-col gap-5">
+          <div className="flex flex-col gap-2">
+            <span className="text-[13px] font-semibold text-[#3b4a68]">
+              Forma do fundo
+            </span>
+            <div className="grid grid-cols-3 gap-2">
+              {FORMAS.map((f) => (
+                <OptionChip
+                  key={f.v}
+                  active={(value.ornament ?? "") === f.v}
+                  onClick={() =>
+                    set("ornament", f.v as DesignState["ornament"])
+                  }
+                >
+                  {f.label}
+                </OptionChip>
+              ))}
+            </div>
+            <p className="text-[11.5px] text-[#9aa7bf]">
+              Sem escolher, vale a forma que vem com o template.
+            </p>
+          </div>
+
+          <ColorPicker
+            label="Cor da forma"
+            value={value.ornamentColor ?? value.accent}
+            onChange={(hex) => set("ornamentColor", hex)}
+          />
+
+          <div className="flex items-center gap-2.5 rounded-xl border border-line bg-[#fafbfd] px-3 py-2">
+            <span className="shrink-0 text-[12.5px] font-semibold text-[#6b7a99]">
+              Força da forma
+            </span>
+            <input
+              type="range"
+              min={5}
+              max={100}
+              step={5}
+              value={value.ornamentOpacity}
+              aria-label="Opacidade da forma do fundo"
+              onChange={(e) => set("ornamentOpacity", Number(e.target.value))}
+              className="h-1 flex-1 cursor-pointer appearance-none rounded-full bg-[#dde4f0] accent-brand-600"
+            />
+            <span className="w-10 shrink-0 text-right font-mono text-[11px] text-[#6b7a99]">
+              {Math.round(value.ornamentOpacity)}%
+            </span>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <span className="text-[13px] font-semibold text-[#3b4a68]">
+              Tamanho da foto
+            </span>
+            <div className="flex items-center gap-2.5 rounded-xl border border-line bg-[#fafbfd] px-3 py-2">
+              <input
+                type="range"
+                min={0.6}
+                max={1.6}
+                step={0.05}
+                value={value.avatarSize}
+                aria-label="Tamanho da foto de perfil"
+                onChange={(e) => set("avatarSize", Number(e.target.value))}
+                className="h-1 flex-1 cursor-pointer appearance-none rounded-full bg-[#dde4f0] accent-brand-600"
+              />
+              <span className="w-10 shrink-0 text-right font-mono text-[11px] text-[#6b7a99]">
+                {value.avatarSize.toFixed(2)}×
+              </span>
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-dashed border-[#d2dae8] bg-[#fafbfd] p-3">
+            <p className="mb-3 text-[11.5px] leading-snug text-[#8a97b1]">
+              Os três abaixo valem no template <strong>Do zero</strong>, que é
+              a tela em branco. Nos outros, a estrutura é do próprio modelo.
+            </p>
+
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-2">
+                <span className="text-[12.5px] font-semibold text-[#3b4a68]">
+                  Alinhamento
+                </span>
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { v: "centro", label: "Centro" },
+                    { v: "esquerda", label: "Esquerda" },
+                  ].map((o) => (
+                    <OptionChip
+                      key={o.v}
+                      active={value.contentAlign === o.v}
+                      onClick={() =>
+                        set("contentAlign", o.v as DesignState["contentAlign"])
+                      }
+                    >
+                      {o.label}
+                    </OptionChip>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <span className="text-[12.5px] font-semibold text-[#3b4a68]">
+                  Posição na tela
+                </span>
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    { v: "topo", label: "Topo" },
+                    { v: "centro", label: "Meio" },
+                    { v: "rodape", label: "Rodapé" },
+                  ].map((o) => (
+                    <OptionChip
+                      key={o.v}
+                      active={value.contentPosition === o.v}
+                      onClick={() =>
+                        set(
+                          "contentPosition",
+                          o.v as DesignState["contentPosition"],
+                        )
+                      }
+                    >
+                      {o.label}
+                    </OptionChip>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <span className="text-[12.5px] font-semibold text-[#3b4a68]">
+                  Cartão atrás do conteúdo
+                </span>
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    { v: "nenhum", label: "Nenhum" },
+                    { v: "vidro", label: "Vidro" },
+                    { v: "solido", label: "Sólido" },
+                  ].map((o) => (
+                    <OptionChip
+                      key={o.v}
+                      active={value.cardStyle === o.v}
+                      onClick={() =>
+                        set("cardStyle", o.v as DesignState["cardStyle"])
+                      }
+                    >
+                      {o.label}
+                    </OptionChip>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         </div>

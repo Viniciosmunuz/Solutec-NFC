@@ -63,6 +63,20 @@ export type PublicCustomization = {
   coverOpacity: number;
   /** linha de sociais acima ou abaixo dos botões */
   socialPosition: "acima" | "abaixo";
+  /** forma do fundo escolhida pelo operador; null usa a do template */
+  ornament: OrnamentKey | "nenhum" | null;
+  /** cor da forma; null usa a cor de destaque */
+  ornamentColor: string | null;
+  /** opacidade da forma, em % */
+  ornamentOpacity: number;
+  /** alinhamento do conteúdo */
+  contentAlign: "esquerda" | "centro";
+  /** posição vertical do bloco */
+  contentPosition: "topo" | "centro" | "rodape";
+  /** cartão atrás do conteúdo */
+  cardStyle: "nenhum" | "vidro" | "solido";
+  /** multiplicador do tamanho da foto */
+  avatarSize: number;
   showLogo: boolean;
   showBio: boolean;
   showSocial: boolean;
@@ -765,22 +779,27 @@ function Ornament({
   name,
   accent,
   onDark,
+  opacity = 1,
 }: {
   name?: OrnamentKey;
   accent: string;
   onDark: boolean;
+  opacity?: number;
 }) {
   if (!name) return null;
 
   const a = (o: number) => hexToRgba(accent, o);
   const veil = onDark ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.55)";
   const cls = "pointer-events-none absolute inset-0 size-full";
+  // A opacidade entra no elemento inteiro para não brigar com os alfas de
+  // cada forma, que são o que dá profundidade a elas.
+  const estilo = opacity >= 1 ? undefined : { opacity };
 
   switch (name) {
     // Ondas suaves no topo e no rodapé.
     case "waves":
       return (
-        <svg className={cls} viewBox="0 0 390 780" preserveAspectRatio="none" aria-hidden>
+        <svg className={cls} style={estilo} viewBox="0 0 390 780" preserveAspectRatio="none" aria-hidden>
           <path d="M0 0h390v96c-78 54-152 2-244 42S54 214 0 176Z" fill={a(0.85)} />
           <path d="M0 0h390v58c-86 46-150 0-238 40S48 160 0 126Z" fill={veil} />
           <path d="M0 780h390V648c-84-44-166 16-258 42S56 712 0 678Z" fill={a(0.85)} />
@@ -790,7 +809,7 @@ function Ornament({
     // Lascas diagonais no canto superior, para templates de energia.
     case "shards":
       return (
-        <svg className={cls} viewBox="0 0 390 780" preserveAspectRatio="none" aria-hidden>
+        <svg className={cls} style={estilo} viewBox="0 0 390 780" preserveAspectRatio="none" aria-hidden>
           <path d="M300 0h34L262 108h-34Z" fill={a(0.45)} />
           <path d="M348 0h42L316 116h-42Z" fill={a(0.8)} />
           <path d="M330 34h60v26L330 140Z" fill={a(0.22)} />
@@ -801,7 +820,7 @@ function Ornament({
     // Folhas nos cantos — clínicas, bem-estar, natural.
     case "leaves":
       return (
-        <svg className={cls} viewBox="0 0 390 780" preserveAspectRatio="none" aria-hidden>
+        <svg className={cls} style={estilo} viewBox="0 0 390 780" preserveAspectRatio="none" aria-hidden>
           <path
             d="M390 0c-60 10-108 46-128 96-18 46 2 86 36 96 40 12 82-22 96-74 10-38 6-80-4-118Z"
             fill={a(0.5)}
@@ -820,7 +839,7 @@ function Ornament({
     // Manchas difusas, bem suaves.
     case "blobs":
       return (
-        <svg className={cls} viewBox="0 0 390 780" preserveAspectRatio="none" aria-hidden>
+        <svg className={cls} style={estilo} viewBox="0 0 390 780" preserveAspectRatio="none" aria-hidden>
           <defs>
             <radialGradient id="orn-blob-a">
               <stop offset="0%" stopColor={a(0.55)} />
@@ -835,7 +854,7 @@ function Ornament({
     // Riscos finos nos cantos — luxo, barbearia.
     case "streaks":
       return (
-        <svg className={cls} viewBox="0 0 390 780" preserveAspectRatio="none" aria-hidden>
+        <svg className={cls} style={estilo} viewBox="0 0 390 780" preserveAspectRatio="none" aria-hidden>
           <path d="M0 0h130L0 150Z" fill={a(0.5)} />
           <path d="M0 24h74L0 104Z" fill={a(0.9)} />
           <path d="M390 780H270L390 640Z" fill={a(0.5)} />
@@ -846,7 +865,7 @@ function Ornament({
     // Fita diagonal atravessando o topo.
     case "diagonal":
       return (
-        <svg className={cls} viewBox="0 0 390 780" preserveAspectRatio="none" aria-hidden>
+        <svg className={cls} style={estilo} viewBox="0 0 390 780" preserveAspectRatio="none" aria-hidden>
           <path d="M0 0h150L0 210Z" fill={a(0.85)} />
           <path d="M60 0h80L0 128V48Z" fill={veil} />
           <path d="M390 780h-140L390 560Z" fill={a(0.5)} />
@@ -856,7 +875,7 @@ function Ornament({
     // Onda vertical na lateral direita.
     case "sidewave":
       return (
-        <svg className={cls} viewBox="0 0 390 780" preserveAspectRatio="none" aria-hidden>
+        <svg className={cls} style={estilo} viewBox="0 0 390 780" preserveAspectRatio="none" aria-hidden>
           <path d="M390 0v780H250c52-150-40-230-4-380S300 90 286 0Z" fill={a(0.12)} />
           <path d="M390 0v780h-54c38-150-28-230 2-380s46-310 34-400Z" fill={a(0.28)} />
           <path d="M390 0v780h-14c12-160-10-240 2-390S378 80 374 0Z" fill={a(0.8)} />
@@ -866,7 +885,7 @@ function Ornament({
     // Barras anguladas — concessionárias, automotivo.
     case "angles":
       return (
-        <svg className={cls} viewBox="0 0 390 780" preserveAspectRatio="none" aria-hidden>
+        <svg className={cls} style={estilo} viewBox="0 0 390 780" preserveAspectRatio="none" aria-hidden>
           <path d="M0 0h96L0 128Z" fill={a(0.9)} />
           <path d="M110 0h52L0 182v-44Z" fill={a(0.45)} />
           <path d="M390 780h-110L390 640Z" fill={a(0.9)} />
@@ -885,6 +904,7 @@ function Shell({
   ornament,
   accent,
   onDark,
+  ornamentOpacity,
   cover,
 }: {
   children: React.ReactNode;
@@ -892,6 +912,8 @@ function Shell({
   ornament?: OrnamentKey;
   accent: string;
   onDark: boolean;
+  /** opacidade da forma, de 0 a 1 */
+  ornamentOpacity?: number;
   /** foto de fundo, quando o template usa o modo imagem */
   cover?: React.ReactNode;
 }) {
@@ -904,7 +926,12 @@ function Shell({
       style={style}
     >
       {cover}
-      <Ornament name={ornament} accent={accent} onDark={onDark} />
+      <Ornament
+        name={ornament}
+        accent={accent}
+        onDark={onDark}
+        opacity={ornamentOpacity}
+      />
       {/* flex-col aqui é o que deixa o conteúdo esticar: sem isso o `grow`
           dos layouts não tem contra quem crescer, e o `mt-auto` do rodapé
           não empurra nada. */}
@@ -928,7 +955,26 @@ export default function PublicPage({
 }: Props) {
   const template = getTemplate(templateKey);
   const layout = template.layout;
-  const ornament = template.ornament;
+  /**
+   * A forma do fundo: o operador manda, o template só sugere.
+   *
+   * `null` significa "não escolhi" e cai na do template; "nenhum" é uma
+   * escolha de verdade — tirar a forma — e precisa vencer o padrão.
+   */
+  const ornament: OrnamentKey | undefined =
+    custom.ornament === "nenhum"
+      ? undefined
+      : ((custom.ornament as OrnamentKey | null) ?? template.ornament);
+
+  const ornamentAccent =
+    custom.ornamentColor && /^#[0-9a-fA-F]{6}$/.test(custom.ornamentColor)
+      ? custom.ornamentColor
+      : custom.accent;
+
+  const ornamentOpacity = Math.min(
+    1,
+    Math.max(0.05, (custom.ornamentOpacity ?? 100) / 100),
+  );
   const darkLayout = layout === "spotlight" || layout === "neon";
   const onDark = darkLayout || layout === "card" || layout === "cover";
   const pageText = darkLayout ? "#ffffff" : readableText(custom.background);
@@ -1049,7 +1095,7 @@ export default function PublicPage({
   // ---- spotlight / neon ----
   if (layout === "spotlight" || layout === "neon") {
     return (
-      <Shell style={shellStyle} ornament={ornament} accent={custom.accent} onDark={darkLayout} cover={coverLayer}>
+      <Shell style={shellStyle} ornament={ornament} accent={ornamentAccent} onDark={darkLayout} ornamentOpacity={ornamentOpacity} cover={coverLayer}>
         <div className="relative flex grow flex-col items-center pt-14">
           {layout === "neon" ? (
             <div
@@ -1080,7 +1126,7 @@ export default function PublicPage({
   // ---- card ----
   if (layout === "card") {
     return (
-      <Shell style={shellStyle} ornament={ornament} accent={custom.accent} onDark={darkLayout} cover={coverLayer}>
+      <Shell style={shellStyle} ornament={ornament} accent={ornamentAccent} onDark={darkLayout} ornamentOpacity={ornamentOpacity} cover={coverLayer}>
         <div className="flex min-h-screen flex-col justify-center py-10">
           <div
             className="w-full overflow-hidden rounded-[26px] bg-white px-6 pb-7 pt-8 shadow-float"
@@ -1102,7 +1148,7 @@ export default function PublicPage({
   // ---- cover ----
   if (layout === "cover") {
     return (
-      <Shell style={shellStyle} ornament={ornament} accent={custom.accent} onDark={darkLayout} cover={coverLayer}>
+      <Shell style={shellStyle} ornament={ornament} accent={ornamentAccent} onDark={darkLayout} ornamentOpacity={ornamentOpacity} cover={coverLayer}>
         <div className="flex grow flex-col pb-2">
           <div className="-mx-5">
             <div
@@ -1150,7 +1196,7 @@ export default function PublicPage({
   // ---- editorial ----
   if (layout === "editorial") {
     return (
-      <Shell style={shellStyle} ornament={ornament} accent={custom.accent} onDark={darkLayout} cover={coverLayer}>
+      <Shell style={shellStyle} ornament={ornament} accent={ornamentAccent} onDark={darkLayout} ornamentOpacity={ornamentOpacity} cover={coverLayer}>
         <div className="flex grow flex-col pt-12">
           <div className="flex items-end gap-4">
             <Avatar
@@ -1188,7 +1234,12 @@ export default function PublicPage({
         className="relative flex min-h-full w-full grow flex-col overflow-hidden bg-[#f6f8fc]"
         style={{ fontFamily: font }}
       >
-        <Ornament name={ornament} accent={custom.accent} onDark={false} />
+        <Ornament
+          name={ornament}
+          accent={ornamentAccent}
+          onDark={false}
+          opacity={ornamentOpacity}
+        />
         <div
           className="relative w-full pb-16 pt-12"
           style={{
@@ -1217,8 +1268,9 @@ export default function PublicPage({
       <Shell
         style={shellStyle}
         ornament={ornament}
-        accent={custom.accent}
+        accent={ornamentAccent}
         onDark={darkLayout}
+        ornamentOpacity={ornamentOpacity}
         cover={coverLayer}
       >
         <div className="-mx-5 flex grow flex-col">
@@ -1268,8 +1320,9 @@ export default function PublicPage({
       <Shell
         style={shellStyle}
         ornament={ornament}
-        accent={custom.accent}
+        accent={ornamentAccent}
         onDark={darkLayout}
+        ornamentOpacity={ornamentOpacity}
         cover={coverLayer}
       >
         <div className="flex grow flex-col pt-14">
@@ -1312,8 +1365,9 @@ export default function PublicPage({
       <Shell
         style={shellStyle}
         ornament={ornament}
-        accent={custom.accent}
+        accent={ornamentAccent}
         onDark={darkLayout}
+        ornamentOpacity={ornamentOpacity}
         cover={coverLayer}
       >
         <div className="flex grow flex-col pt-12">
@@ -1354,8 +1408,9 @@ export default function PublicPage({
       <Shell
         style={shellStyle}
         ornament={ornament}
-        accent={custom.accent}
+        accent={ornamentAccent}
         onDark={darkLayout}
+        ornamentOpacity={ornamentOpacity}
         cover={coverLayer}
       >
         <div className="flex grow flex-col pt-12">
@@ -1391,9 +1446,96 @@ export default function PublicPage({
     );
   }
 
+  // ---- livre: o template "Do zero" ----
+  if (layout === "livre") {
+    const esquerda = custom.contentAlign === "esquerda";
+
+    // Onde o bloco encosta quando sobra espaço.
+    const posicao =
+      custom.contentPosition === "centro"
+        ? "justify-center"
+        : custom.contentPosition === "rodape"
+          ? "justify-end"
+          : "justify-start";
+
+    // O cartão é opcional: sem ele o conteúdo fica direto sobre a foto.
+    const cartao: React.CSSProperties =
+      custom.cardStyle === "vidro"
+        ? {
+            backgroundColor: sobreEscuro
+              ? "rgba(255,255,255,0.08)"
+              : "rgba(255,255,255,0.55)",
+            backdropFilter: "blur(14px)",
+            border: `1px solid ${hexToRgba(custom.accent, 0.18)}`,
+            borderRadius: 24,
+            padding: 20,
+          }
+        : custom.cardStyle === "solido"
+          ? {
+              backgroundColor: sobreEscuro
+                ? hexToRgba(shadeColor(custom.background, -0.3), 0.92)
+                : "#ffffff",
+              border: `1px solid ${hexToRgba(custom.accent, 0.14)}`,
+              borderRadius: 24,
+              padding: 20,
+              boxShadow: "0 18px 40px rgba(16,35,63,0.14)",
+            }
+          : {};
+
+    const tamanhoFoto = Math.round(
+      104 * Math.min(1.6, Math.max(0.6, custom.avatarSize || 1)),
+    );
+
+    return (
+      <Shell
+        style={shellStyle}
+        ornament={ornament}
+        accent={ornamentAccent}
+        onDark={darkLayout}
+        ornamentOpacity={ornamentOpacity}
+        cover={coverLayer}
+      >
+        <div className={`flex grow flex-col py-12 ${posicao}`}>
+          <div style={cartao}>
+            <div
+              className={`flex flex-col gap-4 ${
+                esquerda ? "items-start" : "items-center"
+              }`}
+            >
+              <Logo ctx={ctx} height={38} />
+              <Avatar ctx={ctx} size={tamanhoFoto} />
+              <div className={esquerda ? "w-full" : ""}>
+                <Heading
+                  ctx={ctx}
+                  align={esquerda ? "left" : "center"}
+                  color={pageText}
+                  nameSize={28}
+                />
+              </div>
+            </div>
+
+            <div className="mt-7">
+              <Body
+                ctx={ctx}
+                buttonLinks={buttonLinks}
+                socialLinks={socialLinks}
+                onDarkSurface={
+                  custom.cardStyle === "solido" ? !sobreEscuro : sobreEscuro
+                }
+                share={false}
+              />
+            </div>
+          </div>
+
+          <Bottom ctx={ctx} color={pageText} />
+        </div>
+      </Shell>
+    );
+  }
+
   // ---- banner (padrão) ----
   return (
-    <Shell style={shellStyle} ornament={ornament} accent={custom.accent} onDark={darkLayout} cover={coverLayer}>
+    <Shell style={shellStyle} ornament={ornament} accent={ornamentAccent} onDark={darkLayout} ornamentOpacity={ornamentOpacity} cover={coverLayer}>
       <div className="flex grow flex-col pt-14">
         <div className="flex flex-col items-center gap-5">
           {custom.showLogo && custom.logoUrl ? (

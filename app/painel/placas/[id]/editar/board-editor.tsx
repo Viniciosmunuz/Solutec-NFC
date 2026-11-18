@@ -150,7 +150,9 @@ export default function BoardEditor({
 
   return (
     <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">
-      <div className="flex flex-col gap-4">
+      {/* min-w-0: sem isso o item da grade recusa encolher abaixo do conteúdo
+          mais largo que tiver dentro, e a barra de salvar vaza da tela. */}
+      <div className="flex min-w-0 flex-col gap-4">
         <Card className="overflow-hidden">
           <div className="px-5 pt-1">
             <Tabs
@@ -268,7 +270,7 @@ export default function BoardEditor({
         </div>
       </div>
 
-      <div className="lg:sticky lg:top-6 lg:self-start">
+      <div className="min-w-0 lg:sticky lg:top-6 lg:self-start">
         <PhonePreview url={displayUrl(board.slug)}>
           <PublicPage
             templateKey={templateKey}

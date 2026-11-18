@@ -146,6 +146,22 @@ model Customization {
   /// Linha de redes sociais: acima | abaixo dos botões
   socialPosition String @default("abaixo")
 
+  // --- Composição livre -----------------------------------------------
+  /// Forma geométrica do fundo; vazio = a do template, "nenhum" = sem forma
+  ornament        String?
+  /// Cor da forma; vazio = a cor de destaque
+  ornamentColor   String?
+  /// Opacidade da forma, em %
+  ornamentOpacity Float  @default(100)
+  /// Alinhamento do conteúdo: esquerda | centro
+  contentAlign    String @default("centro")
+  /// Posição vertical do bloco: topo | centro | rodape
+  contentPosition String @default("topo")
+  /// Cartão atrás do conteúdo: nenhum | vidro | solido
+  cardStyle       String @default("nenhum")
+  /// Multiplicador do tamanho da foto de perfil
+  avatarSize      Float  @default(1)
+
   showAvatar  Boolean @default(true)
   /// Anel colorido em volta da foto de perfil
   avatarRing  Boolean @default(true)

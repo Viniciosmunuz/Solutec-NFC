@@ -17,7 +17,8 @@ export type TemplateLayout =
   | "hero" // capa ocupando metade da tela, conteúdo sobreposto
   | "grid" // links em grade de dois
   | "aside" // cartão deslocado, texto à esquerda
-  | "showcase"; // primeiro link vira um cartão grande com a capa
+  | "showcase" // primeiro link vira um cartão grande com a capa
+  | "livre"; // template em branco, montado pelo operador
 
 /**
  * Formas decorativas do fundo. São desenhadas em SVG no renderizador
@@ -109,6 +110,25 @@ export const categoryLabel = (value: string) =>
   TEMPLATE_CATEGORIES.find((c) => c.value === value)?.label ?? "Outros";
 
 export const TEMPLATES: TemplateDefinition[] = [
+  {
+    key: "do-zero",
+    name: "Do zero",
+    description:
+      "Tela em branco: você escolhe o fundo, a forma, a posição e o resto. Comece por aqui quando nenhum modelo servir.",
+    category: "outros",
+    layout: "livre",
+    featured: true,
+    order: 0,
+    defaults: {
+      accent: "#1B54B0",
+      background: "#0E2143",
+      textColor: "#10233F",
+      buttonStyle: "row",
+      buttonRadius: "rounded",
+      fontFamily: "inter",
+      backgroundMode: "gradient",
+    },
+  },
   {
     key: "corporate-blue",
     name: "Corporate Blue",
