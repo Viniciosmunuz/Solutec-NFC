@@ -41,6 +41,17 @@ export const viewport: Viewport = {
   themeColor: "#1B54B0",
   width: "device-width",
   initialScale: 1,
+  /**
+   * `viewportFit: cover` deixa o fundo ir até as bordas em aparelho com
+   * entalhe, em vez de parar numa faixa.
+   *
+   * Não bloqueamos o zoom por pinça: além de ser recurso de acessibilidade,
+   * o iOS ignora `user-scalable=no` desde o iOS 10 — a promessa seria falsa
+   * no aparelho que mais importa aqui. O que realmente causa a sensação de
+   * página solta é rolagem lateral acidental e zoom por toque duplo, e
+   * esses dois são tratados no CSS.
+   */
+  viewportFit: "cover",
 };
 
 export default function RootLayout({

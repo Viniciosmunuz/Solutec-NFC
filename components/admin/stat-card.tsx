@@ -40,9 +40,9 @@ export default function StatCard({
         : "text-danger";
 
   return (
-    <div className="rounded-2xl border border-line bg-white p-5 shadow-card transition-shadow hover:shadow-pop">
+    <div className="rounded-2xl border border-line bg-white p-3.5 shadow-card transition-shadow hover:shadow-pop sm:p-5">
       <div className="flex items-start justify-between gap-3">
-        <div className={cn("grid size-11 place-items-center rounded-xl", tones[tone])}>
+        <div className={cn("grid size-9 place-items-center rounded-xl sm:size-11", tones[tone])}>
           <Icon className="size-5" strokeWidth={2.2} />
         </div>
         {trend !== undefined ? (
@@ -58,11 +58,17 @@ export default function StatCard({
           </span>
         ) : null}
       </div>
-      <p className="mt-4 text-[13px] font-semibold text-[#6b7a99]">{label}</p>
-      <p className="mt-0.5 text-[28px] font-bold leading-tight tracking-tight text-[#10233f]">
+      <p className="mt-3 text-[12px] font-semibold leading-snug text-[#6b7a99] sm:mt-4 sm:text-[13px]">
+        {label}
+      </p>
+      <p className="mt-0.5 text-[22px] font-bold leading-tight tracking-tight text-[#10233f] sm:text-[28px]">
         {typeof value === "number" ? formatNumber(value) : value}
       </p>
-      {hint ? <p className="mt-1 text-xs text-[#9aa7bf]">{hint}</p> : null}
+      {hint ? (
+        <p className="mt-1 text-[11px] leading-snug text-[#9aa7bf] sm:text-xs">
+          {hint}
+        </p>
+      ) : null}
     </div>
   );
 }

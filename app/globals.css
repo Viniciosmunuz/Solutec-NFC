@@ -57,6 +57,10 @@
 
   html {
     -webkit-text-size-adjust: 100%;
+    /* Nada é largo o bastante para rolar de lado. Quando acontece, é bug de
+       layout — e no celular vira aquela sensação de página solta, que
+       escorrega para os lados sem motivo. */
+    overflow-x: hidden;
   }
 
   body {
@@ -64,6 +68,11 @@
     color: #10233f;
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+    /* Mata o zoom por toque duplo e o atraso de 300ms no clique. O zoom por
+       pinça continua: é recurso de acessibilidade, e o iOS ignora qualquer
+       tentativa de bloqueá-lo desde o iOS 10. */
+    touch-action: manipulation;
   }
 
   ::selection {
