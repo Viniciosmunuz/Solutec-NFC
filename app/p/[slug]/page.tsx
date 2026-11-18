@@ -7,6 +7,8 @@ import PublicPage from "@/components/public/PublicPage";
 import { SolutecLogo } from "@/components/brand/logo";
 import { db } from "@/lib/db";
 import { toCustomization } from "@/lib/customization";
+import { getTemplate } from "@/lib/templates";
+import { shadeColor } from "@/lib/utils";
 import { publicUrl } from "@/lib/urls";
 
 type Params = { params: Promise<{ slug: string }> };
@@ -108,16 +110,54 @@ export default async function PublicBoardPage({ params, searchParams }: Params &
     }
   });
 
+  const custom = toCustomization(board.customization);
+
+  /**
+   * Pinta o `html` e o `body` com a cor do template.
+   *
+   * No celular a barra do navegador recolhe ao rolar e o sistema descobre uma
+   * faixa a mais embaixo. Essa faixa não pertence ao conteúdo da página: é o
+   * fundo do documento. Sem isto ela aparece branca, como se a página tivesse
+   * acabado no meio.
+   *
+   * `overscroll-behavior: none` corta o efeito elástico que mostraria a mesma
+   * faixa ao puxar a página para cima.
+   */
+  const corDeFundo = corDoRodape(board.template.key, custom);
+
   return (
-    <div className="flex min-h-dvh flex-col">
-      <PublicPage
-        templateKey={board.template.key}
-        custom={toCustomization(board.customization)}
-        links={board.links}
-        slug={board.slug}
-      />
-    </div>
+    <>
+      <style>{`html,body{background-color:${corDeFundo};overscroll-behavior:none}`}</style>
+      <div className="flex min-h-dvh flex-col">
+        <PublicPage
+          templateKey={board.template.key}
+          custom={custom}
+          links={board.links}
+          slug={board.slug}
+        />
+      </div>
+    </>
   );
+}
+
+/**
+ * Cor que o pé da página tem de verdade, para o documento combinar com ela.
+ *
+ * Não é sempre `background`: o layout `split` termina em cinza claro, e no
+ * modo degradê o fundo escurece até o rodapé. Errar aqui deixa uma emenda
+ * visível justamente na faixa que queremos esconder.
+ */
+function corDoRodape(
+  templateKey: string,
+  custom: { background: string; backgroundMode: string },
+) {
+  if (getTemplate(templateKey).layout === "split") return "#f6f8fc";
+
+  const hex = /^#[0-9a-fA-F]{6}$/.test(custom.background)
+    ? custom.background
+    : "#0e2143";
+
+  return custom.backgroundMode === "gradient" ? shadeColor(hex, -0.25) : hex;
 }
 
 function UnavailablePage({ name }: { name: string }) {
